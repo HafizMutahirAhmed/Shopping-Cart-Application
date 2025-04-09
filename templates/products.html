@@ -1,0 +1,440 @@
+{% if user.user_type == "admin" %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Meta tags -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Bootstrap CSS -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/5.1.0/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet">
+    <!-- Custom Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background-color: #121212;
+            color: #FFFFFF;
+            font-family: 'Poppins', sans-serif;
+        }
+        a {
+            font-size: 14px;
+            font-weight: 700;
+            color: #FFD700;
+            text-decoration: none;
+        }
+        a:hover {
+            color: #FFC300;
+        }
+        .navbar {
+            background-color: #2C2E3A;
+            padding: 0 !important; /* Remove default padding */
+            margin: 0; /* Remove any default margin */
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        .navbar-brand {
+            color: #FFD700;
+            font-weight: bold;
+            padding: 0; /* Ensure no padding around the brand name */
+            margin: 0; /* Ensure no margin around the brand name */
+        }
+        .navbar-toggler {
+            border-color: #FFD700;
+        }
+        .navbar-nav {
+            padding: 0; /* Remove padding for navbar-nav */
+            margin: 0; /* Remove margin for navbar-nav */
+        }
+        .navbar-nav .nav-link {
+            color: #B3B4BD;
+            font-weight: bold;
+            margin-left: 20px;
+            transition: color 0.3s;
+        }
+        .navbar-nav .nav-link:hover {
+            color: #FFD700;
+        }
+        .form-control {
+            background-color: #1E1E1E;
+            border: 1px solid #B3B4BD;
+            color: #B3B4BD;
+            outline: none !important;
+            box-shadow: none !important;
+        }
+        .btn-warning {
+            background-color: #FFD700;
+            border-color: #FFD700;
+            color: #121212;
+            font-weight: bold;
+            transition: background-color 0.3s, border-color 0.3s, color 0.3s;
+        }
+        .btn-warning:hover {
+            background-color: #FFC300;
+            border-color: #FFC300;
+        }
+        @media screen and (max-width: 540px) {
+            .centerOnMobile {
+                text-align: center;
+            }
+        }
+        
+        /* Custom styles for dropdown menu */
+        .dropdown-menu {
+            background-color: #121212; /* Background color */
+            border: none; /* Remove default border */
+            padding: 10px 0; /* Padding */
+        }
+        .dropdown-menu a {
+            color: black; /* Text color */
+            font-weight: bold; /* Font weight */
+            text-transform: uppercase; /* Uppercase text */
+            transition: color 0.3s; /* Smooth color transition */
+        }
+        .dropdown-menu a:hover {
+            color: #FFD700; /* Hover color */
+            background-color: transparent; /* Transparent background on hover */
+        }
+
+    </style>
+</head>
+<body>
+<nav class="navbar navbar-expand-lg">
+    <div class="container">
+        <a class="navbar-brand" href="{{ url_for('products') }}">VIRSA FOREVER</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarNavDropdown">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item">
+                    <a class="nav-link text-uppercase" href="{{ url_for('products') }}"><i class="fas fa-store-alt"></i> Products</a>
+                </li>       
+                <li class="nav-item">
+                    <a class="nav-link text-uppercase" href="{{ url_for('admin_dashboard') }}"><i class="fas fa-user-cog"></i> Admin Panel</a>
+                </li>   
+                <li class="nav-item">
+                    <a class="nav-link text-uppercase" href="{{ url_for('remove_account') }}"><i class="fas fa-user-minus"></i> Remove Account</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-uppercase" href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link text-uppercase"  role="button" aria-expanded="false">
+                        <i class="fas fa-user-circle"></i> Welcome, {{ user.first_name }}!
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- Bootstrap Bundle with Popper -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/2.9.3/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/5.1.0/js/bootstrap.min.js"></script>
+
+{% elif user.user_type == "customer" %}
+    {% extends "base.html" %}
+{% endif %}
+
+{%if user.user_type == "customer" %}
+{% block additional_nav_links %}Welcome, {{ user.first_name }}!{% endblock %}
+{% endif %}
+
+{% block content %}
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #121212;
+            color: #FFFFFF;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: auto;
+            padding-top: 40px;
+        }
+
+        h1 {
+            color: #FFD700;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .btn-link svg {
+            fill: #FFD700;
+        }
+
+        .product-list {
+            background-color: #1E1E1E;
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            padding: 20px;
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+        }
+
+        .product-details {
+            flex-grow: 1;
+            padding-right: 20px;
+        }
+
+        .product-details h5 {
+            color: #FFD700;
+            font-weight: bold;
+        }
+
+        .product-details p {
+            color: #B3B4BD;
+        }
+
+        .btn-info {
+            background-color: #FFD700;
+            border: none;
+            color: #1E1E1E;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .btn-info:hover {
+            background-color: #FFC300;
+        }
+
+        .fa-star.text-success {
+            color: #FFD700;
+        }
+
+        .cart-link {
+            text-align: right;
+            margin-bottom: 20px;
+        }
+
+        .cart-link a {
+            color: #FFD700;
+            text-decoration: none;
+        }
+
+        .cart-link a:hover {
+            color: #FFC300;
+        }
+
+        .qty-input {
+            max-width: 100px;
+            margin: 0;
+            text-align: center;
+        }
+
+        .qty-input input {
+            max-height: 50px;
+            
+            text-align: center;
+        }
+
+        .qty-input .input-group-prepend span {
+            background-color: #2C2E3A;
+            color: #FFFFFF;
+        }
+
+        .action-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        body {
+        font-family: 'Poppins', sans-serif;
+    }
+
+    .product-details {
+        flex-grow: 1;
+        padding: 10px; /* Adjust padding for better spacing */
+    }
+
+    .product-details h5 {
+        color: #FFD700;
+        font-weight: bold;
+        margin-bottom: 5px; /* Adjust margin for better spacing */
+    }
+
+    .product-details p {
+        color: #B3B4BD;
+        margin-bottom: 10px; /* Adjust margin for better spacing */
+    }
+
+    .btn-info {
+        background-color: #FFD700;
+        border: none;
+        color: #1E1E1E;
+        font-weight: bold;
+        cursor: pointer;
+        transition: background-color 0.3s;
+    }
+
+    .btn-info:hover {
+        background-color: #FFC300;
+    }
+
+    .product-list {
+        background-color: #1E1E1E;
+        border: none;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        margin-bottom: 20px;
+        padding: 20px;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+    }
+
+    .product-list img {
+        width: 200px;
+        height: 150px;
+        object-fit: cover; /* Ensure images maintain aspect ratio */
+        margin-left: 20px; /* Adjust spacing between image and details */
+    }
+    .product-list {
+        background-color: #1E1E1E;
+        border: none;
+        border-radius: 12px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Add shadow effect */
+        margin-bottom: 20px;
+        padding: 20px;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        transition: box-shadow 0.3s ease-in-out; /* Optional: Add transition for smooth effect */
+    }
+
+    .product-list:hover {
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2); /* Optional: Increase shadow on hover */
+    }
+
+    .product-list img {
+        width: 200px;
+        height: 150px;
+        object-fit: cover; /* Ensure images maintain aspect ratio */
+        margin-left: 20px; /* Adjust spacing between image and details */
+    }
+    .product-details {
+            flex-grow: 1;
+            padding: 10px;
+        }
+        .product-details h5 {
+            color: #FFD700;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .product-details p {
+            color: #FFFFFF;
+            margin-bottom: 10px;
+        }
+        .product-list {
+    background-color: #1E1E1E;
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 4px 8px rgba(255, 215, 0, 0.2); /* Yellowish shadow effect */
+    margin-bottom: 20px;
+    padding: 20px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    transition: box-shadow 0.3s ease-in-out; /* Optional: Add transition for smooth effect */
+}
+
+.product-list:hover {
+    box-shadow: 0 8px 16px rgba(255, 215, 0, 0.4); /* Increase shadow intensity on hover */
+}
+
+    </style>
+    
+    
+    
+    <div class="container py-5">
+        {%if user.user_type == "customer"%}
+        <div class="cart-link">
+            <a href="/cart">
+                <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" fill="currentColor" class="bi bi-cart" viewBox="0 0 16 16">
+                    <path d="M0 1.5A.5.5 0 0 1 .5 1H2a.5.5 0 0 1 .485.379L2.89 3H14.5a.5.5 0 0 1 .491.592l-1.5 8A.5.5 0 0 1 13 12H4a.5.5 0 0 1-.491-.408L2.01 3.607 1.61 2H.5a.5.5 0 0 1-.5-.5M3.102 4l1.313 7h8.17l1.313-7zM5 12a2 2 0 1 0 0 4 2 2 0 0 0 0-4m7 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4m-7 1a1 1 0 1 1 0 2 1 1 0 0 1 0-2m7 0a1 1 0 1 1 0 2 1 1 0 0 1 0-2"/>
+                </svg>
+            </a>
+        </div>
+        {%endif%}
+        <div class="row text-center mb-5">
+            <div class="col-lg-7 mx-auto">
+                <h1 class="display-4" style="font-weight: bold;">Products</h1>
+            </div>
+        </div>
+
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            
+                {% for category, message in messages %}
+
+                    <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+
+
+                    
+                {% endfor %}
+            
+        {% endif %}
+        {% endwith %}
+
+        {%if products != 'no product' %}
+        {% for product in products %}
+        <div class="product-list">
+            <div class="product-details">
+                <h5 class="mt-0 font-weight-bold mb-2">{{ product.name }}</h5>
+                <p class="font-italic text-muted mb-0 small">{{ product.description }}</p>
+                <p class="font-weight-bold my-2" style="font-size: 90%;">Only {{ product.stock }} left</p>
+                
+                <form action="{{ url_for('add_to_cart', product_name=product.name) }}" method="post">
+                    <div class="action-container">
+                        <div class="input-group qty-input">
+                            <div class="input-group-prepend">
+                                {%if user.user_type == "customer"%}
+                                <span class="input-group-text">Qty</span>
+                                <input id="qty" name="qty" type="number" value="1" min="1" max="{{ product.stock }}" class="form-control text-center" required>
+                                {%endif%}
+                            </div>
+                              </div>
+                              {%if user.user_type == "customer"%}
+                        <button type="submit" class="btn btn-info ml-2">Add to Cart</button>
+                        {%endif%}
+                    </div>
+                </form>
+                <div class="d-flex align-items-center justify-content-between mt-1">
+                    <h6 class="font-weight-bold my-2">${{ product.price }}</h6>
+                    <!-- <ul class="list-inline small">
+                        <li class="list-inline-item m-0"><i class="fa fa-star text-success"></i></li>
+                        <li class="list-inline-item m-0"><i class="fa fa-star text-success"></i></li>
+                        <li class="list-inline-item m-0"><i class="fa fa-star text-success"></i></li>
+                        <li class="list-inline-item m-0"><i class="fa fa-star text-success"></i></li>
+                        <li class="list-inline-item m-0"><i class="fa fa-star-o text-gray"></i></li>
+                    </ul> -->
+                </div>
+            </div>
+            <!-- src="https://bootstrapious.com/i/snippets/sn-cards/shoes-1_gthops.jpg" -->
+            <!-- <img  src = "{{product.image}}"alt="Product image" width="200"> -->
+            <!-- <img  src = "./product_images/Pixel 4A 5G.jpg" alt="Product image" width="200"> -->
+            <img src="{{ product.image_url }}" alt="Product image" width="200" height="150"/>
+
+
+        </div>
+        {% endfor %}
+        {%else%}
+        <p style="text-align: center;">there is no product! kindly visit soon!</p>
+        {%endif%}
+    </div>
+{% endblock %}

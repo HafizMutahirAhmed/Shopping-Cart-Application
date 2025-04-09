@@ -1,0 +1,180 @@
+{% extends "base.html" %}
+{% block additional_nav_links %}Welcome, {{ user.first_name }}!{% endblock %}
+{% block title %}Shopping Cart{% endblock %}
+{% block content %}
+<style>
+    .container {
+        max-width: 800px;
+        margin: auto;
+        padding-top: 40px;
+    }
+    h1 {
+        color: #FFD700;
+        text-align: center;
+        margin-bottom: 30px;
+    }
+    .cart-list {
+        background-color: #1E1E1E;
+        border: none;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        margin-bottom: 20px;
+        padding: 20px;
+    }
+    .cart-details {
+        color: #B3B4BD;
+        
+    }
+    .cart-details img {
+    max-width: 90px; /* Limit image width */
+    margin-right: 20px; /* Add spacing between image and text */
+    padding-bottom: 10px;
+}
+    .action-container {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    .btn-danger {
+        background-color: #FF6F61;
+        border: none;
+        color: #1E1E1E;
+        font-weight: bold;
+        height: 35px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+    }
+    .btn-danger:hover {
+        background-color: #FF5A4A;
+    }
+    .btn-success {
+        background-color: #FFD700;
+        height: 35px;
+        border: none;
+        color: #1E1E1E;
+        font-weight: bold;
+        cursor: pointer;
+        transition: background-color 0.3s;
+    }
+    .btn-success:hover {
+        background-color: #FFC300;
+    }
+    .total-price {
+        text-align: right;
+        font-weight: bold;
+        font-size: 1.2em;
+        color: #FFD700;
+    }
+    .btn-primary {
+            background-color: #FFD700;
+            border: none;
+            color: #121212;
+            font-weight: bold;
+        }
+
+        .btn-primary:hover {
+            background-color: #e6b800;
+        }
+        .cart-list {
+    background-color: #1E1E1E;
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(255, 215, 0, 0.1); /* Yellowish shadow effect */
+    margin-bottom: 20px;
+    padding: 20px;
+    transition: box-shadow 0.3s ease-in-out; /* Optional: Add transition for smooth effect */
+}
+
+.cart-list:hover {
+    box-shadow: 0 8px 16px rgba(255, 215, 0, 0.2); /* Increase shadow intensity on hover */
+}
+
+</style>
+
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet">
+{% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            
+                {% for category, message in messages %}
+
+                    <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+
+
+                    
+                {% endfor %}
+            
+        {% endif %}
+{% endwith %}
+<div class="container py-5">
+    <div class="row text-center mb-5">
+        <div class="col-lg-7 mx-auto">
+            <h1 class="display-4" style="font-weight: bold;">Shopping Cart</h1>
+        </div>
+    </div>
+
+    {% if cart !='empty cart' %}
+        {% for product in cart %}
+            <div class="cart-list">
+                <div class="action-container">
+                    <div class="cart-details">
+                        <img src="{{ product.image_url }}" class="img-fluid" alt="Product Image" style="max-width: 90px; margin-right: 10px;">
+                        <h5 class="font-weight-bold mb-2">{{ product.name }}</h5>
+                        <p>Price: ${{ product.price }}</p>
+                        <p>Quantity: {{ product.cart_product_quantity }}</p>
+                    </div>
+                    <div>
+                        <form action="{{ url_for('update_cart') }}" method="POST" style="display: inline-block;">
+                            <input type="hidden" name="updated_product_name" value="{{ product.name }}">
+                            <input type="number" name="updated_quantity" class="form-control" value="{{ product.cart_product_quantity }}" min="1" style="width:70px; height: 40px; display: inline-block;">
+                            <button type="submit" class="btn btn-success btn-sm mt-1">Update</button>
+                        </form>
+                        <form action="{{ url_for('delete_product') }}" method="POST" style="display: inline-block;">
+                            <input type="hidden" name="deleted_product_name" value="{{ product.name }}">
+                            <button class="btn btn-danger btn-sm mt-1" type="submit">
+                                <i class="fas fa-trash-alt mr-2"></i>Remove
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+        <div class="total-price">
+            <p>Total: ${{ total }}</p>
+        </div>
+        <div class="text-center">
+           
+            <form action="{{ url_for('checkout') }}" method="POST">
+                <input type="hidden" name="checkout_access" value="allowed">
+                <button type="submit" class="btn btn-primary">Proceed Checkout</button>
+            </form>
+            
+        </div>
+    {% else %}
+        <p class="text-center" style="color: white;">Your cart is empty.</p>
+    {% endif %}
+</div>
+
+ 
+
+{% endblock %}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet">
+    <title>{% block title %}{% endblock %}</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body {
+            background-color: #121212;
+            color: #FFFFFF;
+            font-family: 'Poppins', sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        .custom-navbar {
+    background-color: rgba(44, 46, 58, 0.8); /* Semi-transparent background */
+    backdrop-filter: blur(10px); /* Blurred background effect */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    padding: 8px 16px; /* Adjust padding as needed */
+}
+
+
+.custom-navbar .navbar-brand {
+    color: #FFD700;
+    font-weight: bold;
+    font-size: 1.5rem;
+}
+
+.custom-navbar .navbar-toggler {
+    border-color: #FFFFFF;
+}
+
+.custom-navbar .navbar-nav .nav-link {
+    color: #FFFFFF;
+    font-weight: bold;
+    transition: color 0.3s;
+}
+
+.custom-navbar .navbar-nav .nav-link:hover {
+    color: #FFD700;
+}
+
+.custom-navbar .navbar-collapse {
+    justify-content: flex-end;
+}
+
+.custom-navbar .nav-item {
+    margin-right: 15px;
+}
+
+.custom-navbar .nav-link.btn-warning {
+    color: #000;
+}
+
+.custom-navbar .nav-link.btn-warning:hover {
+    background-color: #FFD700;
+    color: #000;
+}
+
+@media screen and (max-width: 768px) {
+    .custom-navbar .navbar-nav {
+        flex-direction: column;
+        margin-top: 10px;
+    }
+    .custom-navbar .nav-item {
+        margin-right: 0;
+        margin-bottom: 10px;
+    }
+    .custom-navbar .navbar-collapse {
+        justify-content: flex-start;
+    }
+}
+
+    </style>
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg custom-navbar">
+    <div class="container">
+        <a class="navbar-brand" href="{{ url_for('products') }}">VIRSA FOREVER</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarNavDropdown">
+            <ul class="navbar-nav ml-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('products') }}"><i class="fas fa-store-alt"></i> Products</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('history') }}"><i class="fas fa-history"></i> Shopping History</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('cart') }}"><i class="fas fa-shopping-cart"></i> Cart</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link btn btn-warning" href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle text-uppercase" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="font-family: poppins;">
+                        <i class="fas fa-user-circle"></i> {% block additional_nav_links %}{% endblock %}
+                    </a>
+                    <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                        <a class="dropdown-item" href="/remove_account"><i class="fas fa-user-minus"></i> Remove Account</a>
+                        <a class="dropdown-item" href="/history"><i class="fas fa-history"></i> View Shopping History</a>
+                    </div>
+                </li>
+                
+                
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div class="container">
+    {% block content %}{% endblock %}
+</div>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+</body>
+</html>

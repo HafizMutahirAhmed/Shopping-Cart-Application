@@ -1,0 +1,158 @@
+{% if user.user_type == "customer" %}
+{% extends "base.html" %}
+{%else%}
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet">
+<style>
+    body {
+        background-color: #121212;
+        color: #FFFFFF;
+        font-family: 'Poppins', sans-serif;
+    }
+    a {
+        font-size: 14px;
+        font-weight: 700;
+        color: #FFD700;
+        text-decoration: none;
+    }
+    a:hover {
+        color: #FFC300;
+    }
+    .navbar {
+        background-color: #2C2E3A;
+        padding: 10px 0;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+    .navbar-brand {
+        color: #FFD700;
+        font-weight: bold;
+    }
+    .navbar-toggler {
+        border-color: #FFD700;
+    }
+    .navbar-nav .nav-link {
+        color: #B3B4BD;
+        font-weight: bold;
+        margin-left: 20px;
+        transition: color 0.3s;
+    }
+    .navbar-nav .nav-link:hover {
+        color: #FFD700;
+    }
+    .form-control {
+        background-color: #1E1E1E;
+        border: 1px solid #B3B4BD;
+        color: #B3B4BD;
+        outline: none !important;
+        box-shadow: none !important;
+    }
+    .btn-warning {
+        background-color: #FFD700;
+        border-color: #FFD700;
+        color: #121212;
+        font-weight: bold;
+        transition: background-color 0.3s, border-color 0.3s, color 0.3s;
+    }
+    .btn-warning:hover {
+        background-color: #FFC300;
+        border-color: #FFC300;
+    }
+    @media screen and (max-width: 540px) {
+        .centerOnMobile {
+            text-align: center;
+        }
+    }
+</style>
+<body>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+<nav class="navbar navbar-expand-lg">
+    <div class="container">
+        <a class="navbar-brand" href="{{ url_for('products') }}">VIRSA FOREVER</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarNavDropdown">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item">
+                    <a class="nav-link text-uppercase" href="{{ url_for('products') }}"><i class="fas fa-store-alt"></i> Products</a>
+                </li>       
+                <li class="nav-item">
+                    <a class="nav-link text-uppercase" href="{{ url_for('admin_dashboard') }}"><i class="fas fa-user-cog"></i> Admin Panel</a>
+                </li>   
+                <li class="nav-item">
+                    <a class="nav-link text-uppercase" href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                    
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-uppercase" href="{{ url_for('remove_account') }}"><i class="fas fa-user-minus"></i> Remove Account</a>
+                </li>
+                
+                <li class="nav-item dropdown">
+                    <a class="nav-link text-uppercase"  role="button" aria-expanded="false">
+                        <i class="fas fa-user-circle"></i> Welcome, {{ user.first_name }}!
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+{%endif%}
+
+{% block content %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Remove Account</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Poppins">
+    <style>
+        body {
+            background-color: #121212;
+            color: #FFFFFF;
+            font-family: 'Poppins', sans-serif;
+            text-align: center;
+            
+        }
+        h2{
+            
+            color: #FFFFFF;
+            font-family: 'Poppins', sans-serif;
+            text-align: center;
+            padding-top: 50px;
+        }
+       
+        /* .btn {
+            padding: 10px 20px;
+            background-color: #FFD700;
+            color: #121212;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+            margin-top: 10px;
+            font-weight: bold;
+            transition: background-color 0.3s, color 0.3s;
+        } */
+        .btn:hover {
+            background-color: #FFC300;
+            color: #121212;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h2>Are you sure you want to remove your account?</h2>
+        <form method="POST" action="/confirm_remove_account">
+            <button type="submit" style="background-color: #FFD700;padding: 10px 20px;color: #121212;font-weight: bold;" name="confirm" value="yes" class="btn">Yes</button>
+            <button type="submit" style="background-color: #FFD700;padding: 10px 20px;color: #121212;font-weight: bold;" name="confirm" value="no" class="btn">No</button>
+        </form>
+    </div>
+</body>
+</html>
+{% endblock %}

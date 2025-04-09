@@ -1,0 +1,100 @@
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;700&display=swap" rel="stylesheet">
+{% block content %}
+    <style>
+        body {
+            background-color: #121212;
+            color: #FFFFFF;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: auto;
+            padding-top: 40px;
+        }
+
+        h1 {
+            color: #FFD700;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        form {
+            background-color: #1E1E1E;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        label {
+            display: block;
+            margin-bottom: 10px;
+            color: #FFD700;
+            font-weight: 500;
+        }
+
+        input[type="text"],
+        input[type="password"] {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #272727;
+            border-radius: 6px;
+            background-color: #2C2E3A;
+            color: #FFFFFF;
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #FFD700;
+            border: none;
+            border-radius: 6px;
+            color: #1E1E1E;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #FFC300;
+        }
+
+        p {
+            text-align: center;
+            margin-top: 20px;
+            color: #FFFFFF;
+        }
+
+        a {
+            color: #FFD700;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        a:hover {
+            color: #FFC300;
+        }
+    </style>
+
+    <div class="container">
+        <h1>Signup</h1>
+        <form action="{{ url_for('signup') }}" method="post">
+            <label for="user_type">Enter the User Type (Admin, Customer):</label>
+            <input type="text" id="user_type" name="user_type" required>
+            <label for="username">Username:</label>
+            <input type="text" id="username" name="username" required>
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password" required>
+            <label for="first_name">First Name:</label>
+            <input type="text" id="first_name" name="first_name" required>
+            <label for="last_name">Last Name:</label>
+            <input type="text" id="last_name" name="last_name" required>
+            <label for="address">Address:</label>
+            <input type="text" id="address" name="address" required>
+            <button type="submit">Signup</button>
+            <p>{{ message }}</p>
+            <a href="{{ url_for('login') }}">Already have an account? Try Login!</a>
+        </form>
+    </div>
+{% endblock %}
