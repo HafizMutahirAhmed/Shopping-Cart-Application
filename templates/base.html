@@ -1,125 +1,211 @@
-<!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;700&display=swap" rel="stylesheet">
-    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet">
-    <title>{% block title %}{% endblock %}</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-    <style>
-        body {
-            background-color: #121212;
-            color: #FFFFFF;
-            font-family: 'Poppins', sans-serif;
-            margin: 0;
-            padding: 0;
-        }
-        .custom-navbar {
-    background-color: rgba(44, 46, 58, 0.8); /* Semi-transparent background */
-    backdrop-filter: blur(10px); /* Blurred background effect */
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    padding: 8px 16px; /* Adjust padding as needed */
-}
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>{% block title %}{% endblock %}</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;700&display=swap" rel="stylesheet"/>
+  <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet"/>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet"/>
+  <style>
+    body {
+      background-color: #fef8f0;
+      color: #FFFFFF;
+      font-family: 'Poppins', sans-serif;
+      margin: 0;
+      padding: 0;
+    }
 
+    .custom-navbar {
+      background-color: #fef8f0;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      padding: 0px 8px;
+      border-bottom: 1px solid #eee;
+    }
 
-.custom-navbar .navbar-brand {
-    color: #FFD700;
-    font-weight: bold;
-    font-size: 1.5rem;
-}
+    .custom-navbar .navbar-brand {
+      color: #a01212;
+      font-weight: bold;
+      font-size: 1.5rem;
+    }
 
-.custom-navbar .navbar-toggler {
-    border-color: #FFFFFF;
-}
+    .custom-navbar .navbar-toggler {
+      border-color: #a01212;
+    }
 
-.custom-navbar .navbar-nav .nav-link {
-    color: #FFFFFF;
-    font-weight: bold;
-    transition: color 0.3s;
-}
+    .custom-navbar .navbar-nav .nav-link {
+      color: #a01212;
+      font-weight: 500;
+      transition: color 0.3s;
+    }
 
-.custom-navbar .navbar-nav .nav-link:hover {
-    color: #FFD700;
-}
+    .custom-navbar .navbar-nav .nav-link:hover,
+    .custom-navbar .navbar-nav .nav-link:focus {
+      color: #a67c00;
+    }
 
-.custom-navbar .navbar-collapse {
-    justify-content: flex-end;
-}
+    .custom-navbar .nav-link.btn-warning {
+      background-color: #a01212;
+      color: #fef8f0;
+      border: none;
+      transition: background-color 0.3s;
+    }
 
-.custom-navbar .nav-item {
-    margin-right: 15px;
-}
+    .custom-navbar .nav-link.btn-warning:hover {
+      background-color: #a67c00;
+      color: #fef8f0;
+    }
 
-.custom-navbar .nav-link.btn-warning {
-    color: #000;
-}
+    .custom-navbar .dropdown-menu {
+      background-color: #fef8f0;
+      border: none;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
 
-.custom-navbar .nav-link.btn-warning:hover {
-    background-color: #FFD700;
-    color: #000;
-}
+    .custom-navbar .dropdown-item {
+      color: #a01212;
+    }
 
-@media screen and (max-width: 768px) {
-    .custom-navbar .navbar-nav {
+    .custom-navbar .dropdown-item:hover {
+      background-color: #f5e2c0;
+      color: #a67c00;
+    }
+
+    .ribbon-wrapper {
+      width: 100%;
+      height: 140px;
+      position: relative;
+      overflow: hidden;
+      z-index: 0;
+    }
+
+    .ribbon {
+      width: 100%;
+      height: 100%;
+      background-image: url('https://i.ibb.co/Kx5hfDSb/pattern.png');
+      background-repeat: no-repeat;
+      background-size: cover;
+      position: absolute;
+      top: 0;
+      left: 0;
+    }
+
+    .center-logo {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 1;
+    }
+
+    .center-logo img {
+      height: 90px;
+    }
+
+    @media screen and (max-width: 768px) {
+      .custom-navbar .navbar-nav {
         flex-direction: column;
-        margin-top: 10px;
-    }
-    .custom-navbar .nav-item {
-        margin-right: 0;
-        margin-bottom: 10px;
-    }
-    .custom-navbar .navbar-collapse {
-        justify-content: flex-start;
-    }
-}
+        text-align: center;
+      }
 
-    </style>
+      .custom-navbar .nav-item {
+        margin: 10px 0;
+      }
+
+      .ribbon-wrapper {
+        height: 100px;
+      }
+
+      .center-logo img {
+        height: 60px;
+      }
+    }
+
+    @media (max-width: 991.98px) {
+      .navbar-nav.shift-right {
+        transform: none !important;
+        align-items: center;
+      }
+
+      .navbar-nav.shift-right .nav-item {
+        margin: 0.5rem 0;
+      }
+
+      .navbar-nav {
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .navbar-nav .nav-item {
+        margin: 1rem 0;
+      }
+    }
+  </style>
 </head>
 <body>
 
+<!-- Full-width Ribbon Background with Overlapping Logo -->
+<div class="ribbon-wrapper">
+  <div class="ribbon"></div>
+  <div class="center-logo">
+    <img src="https://tharfoundation.org/app/themes/tharfoundation/assets/images/dado-sutho-gul.svg" alt="Emblem">
+  </div>
+</div>
 <nav class="navbar navbar-expand-lg custom-navbar">
-    <div class="container">
-        <a class="navbar-brand" href="{{ url_for('products') }}">VIRSA FOREVER</a>
-        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
+  <div class="container-fluid">
+    <a class="navbar-brand d-flex align-items-center" href="{{ url_for('products') }}">
+      <img src="https://videos.openai.com/vg-assets/assets%2Ftask_01jtqqhmazewnv1vzdm5pw8k7j%2F1746700718_img_0.webp?st=2025-05-08T09%3A30%3A04Z&se=2025-05-14T10%3A30%3A04Z&sks=b&skt=2025-05-08T09%3A30%3A04Z&ske=2025-05-14T10%3A30%3A04Z&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skoid=3d249c53-07fa-4ba4-9b65-0bf8eb4ea46a&skv=2019-02-02&sv=2018-11-09&sr=b&sp=r&spr=https%2Chttp&sig=UQdQcdnx0sBYhh0AeOPXcSFSrel1wafN54u4x2qsJ0k%3D&az=oaivgprodscus" alt="Logo" style="width: 100px; height: auto; transition: width 0.3s ease;">      
+      <div>
+        <div style="color: #a01212; font-weight: bold; font-size: 1.5rem;">VIRSA</div>
+        <small style="font-size: 0.75rem; color: #a01212;">FOREVER</small>
+      </div>
+    </a>
 
-        <div class="collapse navbar-collapse" id="navbarNavDropdown">
-            <ul class="navbar-nav ml-auto">
-                <li class="nav-item">
-                    <a class="nav-link" href="{{ url_for('products') }}"><i class="fas fa-store-alt"></i> Products</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{{ url_for('history') }}"><i class="fas fa-history"></i> Shopping History</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{{ url_for('cart') }}"><i class="fas fa-shopping-cart"></i> Cart</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link btn btn-warning" href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt"></i> Logout</a>
-                </li>
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle text-uppercase" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="font-family: poppins;">
-                        <i class="fas fa-user-circle"></i> {% block additional_nav_links %}{% endblock %}
-                    </a>
-                    <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-                        <a class="dropdown-item" href="/remove_account"><i class="fas fa-user-minus"></i> Remove Account</a>
-                        <a class="dropdown-item" href="/history"><i class="fas fa-history"></i> View Shopping History</a>
-                    </div>
-                </li>
-                
-                
-            </ul>
-        </div>
+    <!-- toggler with explicit FontAwesome icon -->
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavDropdown"
+            aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
+      <i class="fas fa-bars" style="color: #a01212; font-size: 1.5rem;"></i>
+    </button>
+
+    <div class="collapse navbar-collapse justify-content-between" id="navbarNavDropdown">
+      <ul class="navbar-nav d-flex flex-lg-row flex-column justify-content-center mx-auto shift-right">
+        <li class="nav-item mx-3">
+          <a class="nav-link" href="{{ url_for('products') }}"><i class="fas fa-store-alt"></i> Products</a>
+        </li>
+        <li class="nav-item mx-3">
+          <a class="nav-link" href="{{ url_for('history') }}"><i class="fas fa-history"></i> Shopping History</a>
+        </li>
+        <li class="nav-item mx-3">
+          <a class="nav-link" href="{{ url_for('cart') }}"><i class="fas fa-shopping-cart"></i> Cart</a>
+        </li>
+      </ul>
+      <ul class="navbar-nav d-flex align-items-center">
+        <li class="nav-item mx-2">
+          <a class="nav-link btn btn-warning" href="{{ url_for('logout') }}">
+            <i class="fas fa-sign-out-alt"></i> Logout
+          </a>
+        </li>
+        <li class="nav-item dropdown mx-2">
+          <a class="nav-link dropdown-toggle text-uppercase" href="#" id="navbarDropdown" role="button" data-toggle="dropdown">
+            <i class="fas fa-user-circle"></i> {% block additional_nav_links %}{% endblock %}
+          </a>
+          <div class="dropdown-menu dropdown-menu-right">
+            <a class="dropdown-item" href="/remove_account"><i class="fas fa-user-minus"></i> Remove Account</a>
+            <a class="dropdown-item" href="/history"><i class="fas fa-history"></i> View Shopping History</a>
+          </div>
+        </li>
+      </ul>
     </div>
+  </div>
 </nav>
 
+
+<!-- Main Content -->
 <div class="container">
-    {% block content %}{% endblock %}
+  {% block content %}{% endblock %}
 </div>
 
+<!-- Scripts -->
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>

@@ -3,93 +3,81 @@
 {% block title %}Shopping Cart{% endblock %}
 {% block content %}
 <style>
+    body {
+        background-color: #fef8f0; /* cream background */
+    }
     .container {
         max-width: 800px;
         margin: auto;
         padding-top: 40px;
     }
     h1 {
-        color: #FFD700;
+        color: #a01212;
         text-align: center;
         margin-bottom: 30px;
     }
     .cart-list {
-        background-color: #1E1E1E;
-        border: none;
+        background-color: #f5e7d0; /* lighter jute/cream card */
+        border: 1px solid #d1b892; /* soft jute border */
         border-radius: 12px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 4px 12px rgba(160, 18, 18, 0.1); /* red-tinted shadow */
         margin-bottom: 20px;
         padding: 20px;
     }
     .cart-details {
-        color: #B3B4BD;
-        
+        color: #5a4022; /* warm dark brown text */
     }
     .cart-details img {
-    max-width: 90px; /* Limit image width */
-    margin-right: 20px; /* Add spacing between image and text */
-    padding-bottom: 10px;
-}
+        max-width: 90px;
+        margin-right: 20px;
+        padding-bottom: 10px;
+    }
     .action-container {
         display: flex;
         align-items: center;
         justify-content: space-between;
     }
     .btn-danger {
-        background-color: #FF6F61;
+        background-color: #a01212;
         border: none;
-        color: #1E1E1E;
+        color: #fef8f0;
         font-weight: bold;
         height: 35px;
         cursor: pointer;
         transition: background-color 0.3s;
     }
     .btn-danger:hover {
-        background-color: #FF5A4A;
+        background-color: #801010;
     }
     .btn-success {
-        background-color: #FFD700;
+        background-color: #c2b280;
         height: 35px;
         border: none;
-        color: #1E1E1E;
+        color: #3c2f1f;
         font-weight: bold;
         cursor: pointer;
         transition: background-color 0.3s;
     }
     .btn-success:hover {
-        background-color: #FFC300;
+        background-color: #b0a16b;
     }
     .total-price {
         text-align: right;
         font-weight: bold;
         font-size: 1.2em;
-        color: #FFD700;
+        color: #a01212;
     }
     .btn-primary {
-            background-color: #FFD700;
-            border: none;
-            color: #121212;
-            font-weight: bold;
-        }
-
-        .btn-primary:hover {
-            background-color: #e6b800;
-        }
-        .cart-list {
-    background-color: #1E1E1E;
-    border: none;
-    border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(255, 215, 0, 0.1); /* Yellowish shadow effect */
-    margin-bottom: 20px;
-    padding: 20px;
-    transition: box-shadow 0.3s ease-in-out; /* Optional: Add transition for smooth effect */
-}
-
-.cart-list:hover {
-    box-shadow: 0 8px 16px rgba(255, 215, 0, 0.2); /* Increase shadow intensity on hover */
-}
-
+        background-color: #a01212;
+        border: none;
+        color: #fef8f0;
+        font-weight: bold;
+    }
+    .btn-primary:hover {
+        background-color: #801010;
+    }
 </style>
+
 
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet">
 {% with messages = get_flashed_messages(with_categories=true) %}
@@ -155,7 +143,7 @@
             
         </div>
     {% else %}
-        <p class="text-center" style="color: white;">Your cart is empty.</p>
+        <p class="text-center" style="color: black;">Your cart is empty.</p>
     {% endif %}
 </div>
 

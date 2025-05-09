@@ -75,13 +75,28 @@
         a:hover {
             color: #FFC300;
         }
+        select {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 20px;
+    border: 1px solid #272727;
+    border-radius: 6px;
+    background-color: #2C2E3A;
+    color: #FFFFFF;
+    font-family: 'Poppins', sans-serif;
+}
+
     </style>
 
     <div class="container">
         <h1>Signup</h1>
         <form action="{{ url_for('signup') }}" method="post">
             <label for="user_type">Enter the User Type (Admin, Customer):</label>
-            <input type="text" id="user_type" name="user_type" required>
+            <select id="user_type" name="user_type" required>
+            <option value="Admin">Admin</option>
+            <option value="Customer">Customer</option>
+            </select>
+
             <label for="username">Username:</label>
             <input type="text" id="username" name="username" required>
             <label for="password">Password:</label>

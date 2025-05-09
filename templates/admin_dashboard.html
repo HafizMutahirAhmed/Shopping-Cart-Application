@@ -96,6 +96,9 @@
                     <li class="nav-item">
                         <a class="nav-link text-uppercase" href="{{ url_for('remove_account') }}"><i class="fas fa-user-minus"></i> Remove Account</a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-uppercase" href="{{url_for('show_all_orders')}}"><i class="fas fa-user-minus"></i> Order Management</a>
+                    </li>
                     
                     <li class="nav-item dropdown">
                         <a class="nav-link text-uppercase"  role="button" aria-expanded="false">
@@ -205,9 +208,5 @@
         <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
     </body>
     </html>
-    
 
-
-    
-    
 {% endblock %}

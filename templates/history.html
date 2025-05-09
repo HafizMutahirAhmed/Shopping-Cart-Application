@@ -8,144 +8,270 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- <title>Shopping History</title> -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;700&display=swap" rel="stylesheet">
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/5.0.0-beta3/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body {
-            background-color: #121212;
-            color: #FFFFFF;
+            background-color: #fef8f0;
+            color: #121212;
             font-family: 'Poppins', sans-serif;
         }
-
+    
         .container {
             max-width: 800px;
             margin: auto;
             padding-top: 40px;
         }
-
-        .history-card {
-            margin: 20px 0;
-            border: none;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            background-color: #1E1E1E;
-        }
-
-        .card-header {
-            background-color: #272727;
-            color: #FFFFFF;
-            padding: 20px;
-            border-bottom: 1px solid #FFD700;
-            border-top-left-radius: 12px;
-            border-top-right-radius: 12px;
-        }
-
-        .card-body {
-            background-color: #1E1E1E;
-            padding: 20px;
-            border-bottom-left-radius: 12px;
-            border-bottom-right-radius: 12px;
-        }
-
-        .product-list {
-            list-style-type: none;
-            padding: 0;
-            margin: 0;
-        }
-
-        .product-list li {
-            padding: 10px 0;
-            border-bottom: 1px solid #FFD700;
-            color: #FFFFFF;
-            display: flex;
-            align-items: center;
-        }
-
-        .product-list li:last-child {
-            border-bottom: none;
-        }
-
-        .product-icon {
-            font-size: 1.2rem;
-            margin-right: 10px;
-        }
-
-        .total-cost {
-            font-weight: bold;
-            color: #FFD700;
-        }
-
+    
         h1 {
-            color: #FFD700;
+            color: #a01212;
             font-weight: 700;
+            text-align: center;
         }
+    
         .search-form {
-            margin-bottom: 40px;
+            margin: 30px auto 50px auto;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
         }
-
+    
         .search-form input[type="date"] {
             border: none;
-            padding: 10px;
-            border-radius: 5px;
-            margin-right: 10px;
-        }
-
-        .search-form button {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
-            background-color: #FFD700;
+            padding: 10px 15px;
+            border-radius: 8px;
+            background-color: rgba(160, 18, 18, 0.1);
             color: #121212;
-            font-weight: bold;
         }
+    
+        .search-form button,
         .reset-button {
             padding: 10px 20px;
             border: none;
-            border-radius: 5px;
-            
-            color: white;
+            border-radius: 8px;
+            font-weight: bold;
+            transition: 0.2s;
+        }
+    
+        .search-form button {
+            background-color: #a01212;
+            color: #fef8f0;
+        }
+    
+        .reset-button {
+            background-color: transparent;
+            color: #a01212;
+            border: 2px solid #a01212;
+        }
+    
+        .reset-button:hover {
+            background-color: #a01212;
+            color: #fef8f0;
+        }
+    
+        .history-card {
+            background-color: #fcf5e8; /* lighter cream */
+            border-radius: 15px;
+            box-shadow: 0 4px 10px rgba(166, 124, 0, 0.25);
+            margin-bottom: 30px;
+            overflow: hidden;
+            border: 1px solid #eedfc3;
+        }
+    
+        .card-header {
+            background-color: rgba(160, 18, 18, 0.08); /* soft red tint */
+            padding: 20px;
+            border-bottom: 1px solid #d8b8a0;
+        }
+    
+        .card-header h4 {
+            margin: 0;
+            color: #a01212;
+            font-weight: 600;
+        }
+    
+        .card-header small {
+            color: #555;
+        }
+    
+        .card-body {
+            padding: 20px;
+        }
+    
+        .product-list {
+            list-style-type: none;
+            padding: 0;
+        }
+    
+        .product-item {
+            padding: 15px 0;
+            border-bottom: 1px solid rgba(160, 18, 18, 0.1);
+        }
+    
+        .product-item:last-child {
+            border-bottom: none;
+        }
+    
+        .product-name {
+            font-weight: bold;
+            color: #a01212;
+        }
+    
+        .product-quantity {
+            color: #333;
+        }
+    
+        .rating {
+            margin-top: 10px;
+        }
+    
+        .star {
+            font-size: 24px;
+            color: #c4aa6e;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+    
+        .comments {
+            margin-top: 15px;
+        }
+    
+        .comments textarea {
+            width: 100%;
+            padding: 10px;
+            background-color: #fffaf4;
+            border: 1px solid #d8b8a0;
+            border-radius: 6px;
+            color: #121212;
+        }
+    
+        .submit-comment {
+            margin-top: 10px;
+            background-color: #a01212;
+            color: #fef8f0;
+            border: none;
+            border-radius: 6px;
+            padding: 8px 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+    
+        .total-cost {
+            text-align: right;
+            color: #a01212;
+            font-size: 1.1rem;
+            margin-top: 20px;
             font-weight: bold;
         }
     </style>
+    
+    
+    
 </head>
 
 <body>
     <div class="container">
-        <h1 class="text-center mb-5">Shopping History</h1>
-        <form class="search-form d-flex justify-content-center" method="post" action="{{ url_for('history') }}">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        <div class="container mb-4">
+        {% for category, message in messages %}
+            <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+            </div>
+        {% endfor %}
+        </div>
+    {% endif %}
+    {% endwith %}
+
+        <h1>Shopping History</h1>
+
+        <form class="search-form" method="post" action="{{ url_for('history') }}">
             <input type="date" name="search_date" required>
             <button type="submit">Search</button>
             {% if search_performed %}
                 <a href="{{ url_for('history') }}" class="reset-button">Clear Filter</a>
             {% endif %}
         </form>
+
         {% if history %}
-            {% for shopping_record in history %}
-                <div class="history-card card">
-                    <div class="card-header d-flex justify-content-between align-items-center">
-                        <h4 class="mb-0">{{ shopping_record.order_date }}</h4>
-                        <small>{{ shopping_record.order_time }}</small>
-                    </div>
-                    <div class="card-body">
-                        <ul class="product-list">
-                            {% for product_name, product_quantity in shopping_record.order_items.items() %}
-                                <li><span class="product-icon">🛒</span>{{ product_name }} - x {{ product_quantity }}</li>
-                            {% endfor %}
-                        </ul>
-                        <h5 class="text-right mt-4 total-cost">Total Cost: ${{ shopping_record.total_amount }}</h5>
-                    </div>
-                </div>
-            {% endfor %}
-        {% else %}
-            <p>No purchase history available.</p>
-        {% endif %}
-    </div>
+    {% for shopping_record in history if shopping_record.status == 'DELIVERED' %}
+        <div class="history-card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h4>{{ shopping_record.order_date }}</h4>
+                <small>{{ shopping_record.order_time }}</small>
+            </div>
+            <div class="card-body">
+                <ul class="product-list">
+                    {% for product_name, details in shopping_record.order_items.items() %}
+                        <li class="product-item">
+                            <span class="product-icon">🛒</span>
+                            <span class="product-name">{{ product_name }}</span> x 
+                            <span class="product-quantity" style="color: black;">{{ details.quantity }}</span>
+
+                            {% if check_feedback_exists(shopping_record.order_id, details.product_id) %}
+                                <!-- Feedback already exists -->
+                            {% else %}
+                                <form method="post" action="{{ url_for('history') }}">
+                                    <input type="hidden" name="order_id" value="{{ shopping_record.order_id }}">
+                                    <input type="hidden" name="product_id" value="{{ details.product_id }}">
+
+                                    <div class="rating">
+                                        {% for i in range(1, 6) %}
+                                            <span class="star" data-rating="{{ i }}">&#9733;</span>
+                                        {% endfor %}
+                                        <input type="hidden" name="rating" class="rating-value" value="0">
+                                        <div class="rating-error text-danger mt-1" style="display: none; font-size: 0.9rem;">Please select a rating.</div>
+                                    </div>
+
+                                    <div class="comments">
+                                        <label><strong>Leave a Comment:</strong></label>
+                                        <textarea name="comment" rows="3" placeholder="Write your thoughts here..."></textarea>
+                                        <button type="submit" class="submit-comment">Submit</button>
+                                    </div>
+                                </form>
+                            {% endif %}
+                        </li>
+                    {% endfor %}
+                </ul>
+                <div class="total-cost">Total Cost: ${{ shopping_record.total_amount }}</div>
+            </div>
+        </div>
+    {% endfor %}
+{% else %}
+    <p class="text-center">No purchase history available.</p>
+{% endif %}
+
+</div>
+    
+
+    <script>
+       document.querySelectorAll('.star').forEach(function (star) {
+    star.addEventListener('click', function () {
+        const rating = this.getAttribute('data-rating');
+        const parent = this.closest('form');
+        const ratingInput = parent.querySelector('.rating-value');
+
+        ratingInput.value = rating;
+
+        parent.querySelectorAll('.star').forEach(function (s) {
+            if (s.getAttribute('data-rating') <= rating) {
+                s.style.color = 'gold';
+            } else {
+                s.style.color = '#888';
+            }
+        });
+    });
+});
+
+    </script>
 
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/5.0.0-beta3/js/bootstrap.min.js"></script>
 </body>
-
 </html>
 {% endblock %}

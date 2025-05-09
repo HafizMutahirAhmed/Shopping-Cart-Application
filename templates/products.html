@@ -6,6 +6,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Bootstrap CSS -->
+    <link href="https://unpkg.com/aos@2.3.4/dist/aos.css" rel="stylesheet">
+
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/5.1.0/css/bootstrap.min.css" rel="stylesheet">
     <!-- Font Awesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet">
@@ -27,7 +29,7 @@
             color: #FFC300;
         }
         .navbar {
-            background-color: #2C2E3A;
+            background-color: #fef8f0;
             padding: 0 !important; /* Remove default padding */
             margin: 0; /* Remove any default margin */
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
@@ -97,6 +99,13 @@
 
     </style>
 </head>
+<script src="https://unpkg.com/aos@2.3.4/dist/aos.js"></script>
+<script>
+  AOS.init({
+    duration: 800,
+    once: true
+  });
+</script>
 <body>
 <nav class="navbar navbar-expand-lg">
     <div class="container">
@@ -118,6 +127,9 @@
                 </li>
                 <li class="nav-item">
                     <a class="nav-link text-uppercase" href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-uppercase" href="{{url_for('show_all_orders')}}"><i class="fas fa-user-minus"></i> Order Management</a>
                 </li>
                 <li class="nav-item dropdown">
                     <a class="nav-link text-uppercase"  role="button" aria-expanded="false">
@@ -145,214 +157,232 @@
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;700&display=swap" rel="stylesheet">
 <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet">
-    <style>
-        body {
-            background-color: #121212;
-            color: #FFFFFF;
-            font-family: 'Poppins', sans-serif;
-        }
+<style>
+body {
+    background-color: #fef8f0;
+    color: #a01212;
+    font-family: 'Poppins', sans-serif;
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    /* Background pattern repeated on the left and right */
+    background: url('https://tharfoundation.org/app/themes/tharfoundation/assets/images/bg-vision-mission.jpg');
+    /* Ensure the pattern repeats both horizontally and vertically */
+    background-repeat: repeat-y;
 
-        .container {
-            max-width: 800px;
-            margin: auto;
-            padding-top: 40px;
-        }
+    /* You can control the width of the pattern if needed */
+    background-size: 100%;  /* This keeps the image width as is and scales the height */
+    
+}
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
 
-        h1 {
-            color: #FFD700;
-            text-align: center;
-            margin-bottom: 30px;
-        }
 
-        .btn-link svg {
-            fill: #FFD700;
-        }
 
-        .product-list {
-            background-color: #1E1E1E;
-            border: none;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            margin-bottom: 20px;
-            padding: 20px;
-            display: flex;
-            flex-direction: row;
-            align-items: center;
-        }
 
-        .product-details {
-            flex-grow: 1;
-            padding-right: 20px;
-        }
+    .container,
+    .container-fluid {
+        padding-left: 0 !important;  /* Remove left padding */
+        padding-right: 0 !important; /* Remove right padding */
+        width: 100%; /* Make the container full width */
+    }
 
-        .product-details h5 {
-            color: #FFD700;
-            font-weight: bold;
-        }
+    .row {
+        margin-left: 0 !important;  /* Remove left margin */
+        margin-right: 0 !important; /* Remove right margin */
+    }
 
-        .product-details p {
-            color: #B3B4BD;
-        }
+    .card {
+        margin-left: 0;  /* Remove left margin */
+        margin-right: 0; /* Remove right margin */
+        padding: 0; /* Remove any padding */
+        border-radius: 12px; /* Round the edges */
+        box-shadow: 0 4px 8px rgba(160, 18, 18, 0.2); /* warm maroon shadow */
+        transition: box-shadow 0.3s ease-in-out;
+    }
 
-        .btn-info {
-            background-color: #FFD700;
-            border: none;
-            color: #1E1E1E;
-            font-weight: bold;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
+    .card:hover {
+        box-shadow: 0 8px 16px rgba(166, 124, 0, 0.4); /* golden brown hover */
+    }
 
-        .btn-info:hover {
-            background-color: #FFC300;
-        }
+    .card-img-top {
+        border-top-left-radius: 12px;
+        border-top-right-radius: 12px;
+    }
 
-        .fa-star.text-success {
-            color: #FFD700;
-        }
+    .card-body {
+        border-bottom-left-radius: 12px;
+        border-bottom-right-radius: 12px;
+    }
 
-        .cart-link {
-            text-align: right;
-            margin-bottom: 20px;
-        }
+    h1 {
+        color: #a01212;
+        text-align: center;
+        margin-bottom: 30px;
+    }
 
-        .cart-link a {
-            color: #FFD700;
-            text-decoration: none;
-        }
+    .btn-link svg {
+        fill: #a01212;
+    }
 
-        .cart-link a:hover {
-            color: #FFC300;
-        }
+    .product-list {
+        background-color: #fff3e0;
+        border: none;
+        border-radius: 12px;
+        box-shadow: 0 4px 8px rgba(160, 18, 18, 0.2); /* warm maroon shadow */
+        margin-bottom: 20px;
+        padding: 20px;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        transition: box-shadow 0.3s ease-in-out;
+    }
 
-        .qty-input {
-            max-width: 100px;
-            margin: 0;
-            text-align: center;
-        }
+    .product-list:hover {
+        box-shadow: 0 8px 16px rgba(166, 124, 0, 0.4); /* golden brown hover */
+    }
 
-        .qty-input input {
-            max-height: 50px;
-            
-            text-align: center;
-        }
-
-        .qty-input .input-group-prepend span {
-            background-color: #2C2E3A;
-            color: #FFFFFF;
-        }
-
-        .action-container {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-        body {
-        font-family: 'Poppins', sans-serif;
+    .product-list img {
+        width: 200px;
+        height: 150px;
+        object-fit: cover;
+        margin-left: 20px;
     }
 
     .product-details {
         flex-grow: 1;
-        padding: 10px; /* Adjust padding for better spacing */
+        padding: 10px;
     }
 
     .product-details h5 {
-        color: #FFD700;
+        color: #a01212;
         font-weight: bold;
-        margin-bottom: 5px; /* Adjust margin for better spacing */
+        margin-bottom: 5px;
     }
 
     .product-details p {
-        color: #B3B4BD;
-        margin-bottom: 10px; /* Adjust margin for better spacing */
+        color: #5e3b3b;
+        margin-bottom: 10px;
     }
 
     .btn-info {
-        background-color: #FFD700;
+        background-color: #a01212;
         border: none;
-        color: #1E1E1E;
+        color: #fef8f0;
         font-weight: bold;
         cursor: pointer;
         transition: background-color 0.3s;
     }
 
     .btn-info:hover {
-        background-color: #FFC300;
+        background-color: #a67c00;
     }
 
-    .product-list {
-        background-color: #1E1E1E;
-        border: none;
-        border-radius: 12px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    .fa-star.text-success {
+        color: #a67c00;
+    }
+
+    .cart-link {
+        text-align: right;
         margin-bottom: 20px;
-        padding: 20px;
-        display: flex;
-        flex-direction: row;
-        align-items: center;
     }
 
-    .product-list img {
-        width: 200px;
-        height: 150px;
-        object-fit: cover; /* Ensure images maintain aspect ratio */
-        margin-left: 20px; /* Adjust spacing between image and details */
-    }
-    .product-list {
-        background-color: #1E1E1E;
-        border: none;
-        border-radius: 12px;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Add shadow effect */
-        margin-bottom: 20px;
-        padding: 20px;
-        display: flex;
-        flex-direction: row;
-        align-items: center;
-        transition: box-shadow 0.3s ease-in-out; /* Optional: Add transition for smooth effect */
+    .cart-link a {
+        color: #a01212;
+        text-decoration: none;
     }
 
-    .product-list:hover {
-        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2); /* Optional: Increase shadow on hover */
+    .cart-link a:hover {
+        color: #a67c00;
     }
 
-    .product-list img {
-        width: 200px;
-        height: 150px;
-        object-fit: cover; /* Ensure images maintain aspect ratio */
-        margin-left: 20px; /* Adjust spacing between image and details */
+    .qty-input {
+        max-width: 100px;
+        margin: 0;
+        text-align: center;
     }
-    .product-details {
-            flex-grow: 1;
-            padding: 10px;
-        }
-        .product-details h5 {
-            color: #FFD700;
-            font-weight: bold;
-            margin-bottom: 5px;
-        }
-        .product-details p {
-            color: #FFFFFF;
-            margin-bottom: 10px;
-        }
-        .product-list {
-    background-color: #1E1E1E;
-    border: none;
-    border-radius: 12px;
-    box-shadow: 0 4px 8px rgba(255, 215, 0, 0.2); /* Yellowish shadow effect */
-    margin-bottom: 20px;
-    padding: 20px;
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    transition: box-shadow 0.3s ease-in-out; /* Optional: Add transition for smooth effect */
+
+    .qty-input input {
+        max-height: 50px;
+        text-align: center;
+    }
+
+    .qty-input .input-group-prepend span {
+        background-color: #a67c00;
+        color: #fef8f0;
+    }
+
+    .mylink {
+        color: #a01212;
+    }
+
+    .mylink:hover {
+        color: #a67c00;
+    }
+
+    /* Hero Section */
+    .hero-section {
+  width: 100%;
+  background: #fde9d9; /* or use your background-image */
+  padding: 100px 0;
+  color: #000;
 }
 
-.product-list:hover {
-    box-shadow: 0 8px 16px rgba(255, 215, 0, 0.4); /* Increase shadow intensity on hover */
+.hero-section .container {
+  max-width: 4200px;
+  margin: 0 auto;
 }
 
-    </style>
-    
+
+
+    section.hero-section h1 {
+        font-weight: bold;
+        color: #5a1a1a;
+    }
+
+    section.hero-section p {
+        color: #3c3c3c;
+    }
+
+    section.hero-section a {
+        background-color: #a01212;
+        color: #fff;
+        font-weight: bold;
+    }
+</style>
+
+
+    <!-- Hero Section -->
+<!-- Hero Section -->
+<section class="hero-section py-5 text-center" style="background: #fff3e0;">
+    <div class="container" data-aos="fade-up">
+        <!-- Decorative Icons -->
+        <div class="row justify-content-center align-items-center mt-5">
+            <div class="col-4 col-md-2">
+                <img src="https://tharfoundation.org/app/themes/tharfoundation/assets/images/vision.svg" alt="Vision Icon" class="img-fluid" style="max-height: 80px;">
+            </div>
+            <div class="col-4 col-md-2">
+                <img src="https://tharfoundation.org/app/themes/tharfoundation/assets/images/mission.svg" alt="Mission Icon" class="img-fluid" style="max-height: 80px;">
+            </div>
+        </div>
+        <h1 class="display-4 fw-bold" style="color: #5a1a1a;">
+            Welcome to <span style="color: #a01212; font-weight: 900;">VIRSA FOREVER</span>
+        </h1>
+        <p class="lead mb-4" style="color: #3c3c3c;">
+            Discover handcrafted elegance rooted in tradition, designed for the modern soul.
+        </p>
+        <a href="#product-section" class="btn btn-lg text-uppercase fw-bold px-4 py-2" style="background-color: #a01212; color: #fff; border: none;">
+            Shop Now
+        </a>
+
+        
+    </div>
+</section>
+
+
     
     
     <div class="container py-5">
@@ -390,51 +420,42 @@
             
         {% endif %}
         {% endwith %}
-
         {%if products != 'no product' %}
-        {% for product in products %}
-        <div class="product-list">
-            <div class="product-details">
-                <h5 class="mt-0 font-weight-bold mb-2">{{ product.name }}</h5>
-                <p class="font-italic text-muted mb-0 small">{{ product.description }}</p>
-                <p class="font-weight-bold my-2" style="font-size: 90%;">Only {{ product.stock }} left</p>
-                
-                <form action="{{ url_for('add_to_cart', product_name=product.name) }}" method="post">
-                    <div class="action-container">
-                        <div class="input-group qty-input">
-                            <div class="input-group-prepend">
-                                {%if user.user_type == "customer"%}
-                                <span class="input-group-text">Qty</span>
-                                <input id="qty" name="qty" type="number" value="1" min="1" max="{{ product.stock }}" class="form-control text-center" required>
-                                {%endif%}
-                            </div>
-                              </div>
-                              {%if user.user_type == "customer"%}
-                        <button type="submit" class="btn btn-info ml-2">Add to Cart</button>
-                        {%endif%}
+        <!-- Card Section -->
+        <div class="container-fluid px-0">
+            <div class="row gx-0">
+                {% for product in products %}
+                <div class="col-12 col-md-4 mb-4">
+                    <div class="card h-100 border-0 rounded-4 shadow-lg mx-2">
+                        <a href="{{ url_for('product', product_name=product.name) }}">
+                            <img src="{{ product.image_url }}" class="card-img-top rounded-top" alt="{{ product.name }}">
+                        </a>
+                        <div class="card-body text-center">
+                            <h5 class="card-title">
+                                <a class="text-decoration-none text-dark" href="{{ url_for('product', product_name=product.name) }}">{{ product.name }}</a>
+                            </h5>
+                            <p class="card-text text-muted small">{{ product.description }}</p>
+                            <strong class="d-block mb-2">${{ product.price }}</strong>
+                            <p class="text-muted small">Only {{ product.stock }} left</p>
+                            {% if user.user_type == "customer" %}
+                            <form action="{{ url_for('add_to_cart', product_name=product.name) }}" method="post">
+                                <div class="input-group mb-2 justify-content-center">
+                                    <span class="input-group-text">Qty</span>
+                                    <input id="qty" name="qty" type="number" value="1" min="1" max="{{ product.stock }}" class="form-control text-center w-50" required>
+                                </div>
+                                <button type="submit" class="btn btn-info btn-sm">Add to Cart</button>
+                            </form>
+                            {% endif %}
+                        </div>
                     </div>
-                </form>
-                <div class="d-flex align-items-center justify-content-between mt-1">
-                    <h6 class="font-weight-bold my-2">${{ product.price }}</h6>
-                    <!-- <ul class="list-inline small">
-                        <li class="list-inline-item m-0"><i class="fa fa-star text-success"></i></li>
-                        <li class="list-inline-item m-0"><i class="fa fa-star text-success"></i></li>
-                        <li class="list-inline-item m-0"><i class="fa fa-star text-success"></i></li>
-                        <li class="list-inline-item m-0"><i class="fa fa-star text-success"></i></li>
-                        <li class="list-inline-item m-0"><i class="fa fa-star-o text-gray"></i></li>
-                    </ul> -->
                 </div>
+                {% endfor %}
             </div>
-            <!-- src="https://bootstrapious.com/i/snippets/sn-cards/shoes-1_gthops.jpg" -->
-            <!-- <img  src = "{{product.image}}"alt="Product image" width="200"> -->
-            <!-- <img  src = "./product_images/Pixel 4A 5G.jpg" alt="Product image" width="200"> -->
-            <img src="{{ product.image_url }}" alt="Product image" width="200" height="150"/>
-
-
         </div>
-        {% endfor %}
+        
         {%else%}
         <p style="text-align: center;">there is no product! kindly visit soon!</p>
         {%endif%}
-    </div>
+        
+      
 {% endblock %}
