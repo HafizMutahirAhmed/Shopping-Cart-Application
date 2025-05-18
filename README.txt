@@ -32,19 +32,16 @@ Project Setup Instructions
    Finally, to execute the code, run:
    python app.py
  
-*We have provided three accounts for testing purposes:
+*We have provided two accounts for testing purposes:
 
 Admin Account:
+Username: asra@gmail.com
+Password: 123
+
+Customer Account:
 Username: mutahir@gmail.com
 Password: 123
 
-Customer Account 1:
-Username: shameen@gmail.com
-Password: 123
-
-Customer Account 2:
-Username: nabeeha@gmail.com
-Password: 123
 
 *Checking the Database:
 If you want to check the database, you can install DB Browser for SQLite. This tool allows you to view and edit the database contents easily.
