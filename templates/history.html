@@ -213,7 +213,6 @@
                             <span class="product-quantity" style="color: black;">{{ details.quantity }}</span>
 
                             {% if check_feedback_exists(shopping_record.order_id, details.product_id) %}
-                                <!-- Feedback already exists -->
                             {% else %}
                                 <form method="post" action="{{ url_for('history') }}">
                                     <input type="hidden" name="order_id" value="{{ shopping_record.order_id }}">

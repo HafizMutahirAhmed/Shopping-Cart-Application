@@ -2,10 +2,21 @@
 {% block content %}
     <style>
         body {
-            background-color: #121212;
-            color: #FFFFFF;
-            font-family: 'Poppins', sans-serif;
-        }
+    background-color: #fef8f0;
+    color: #a01212;
+    font-family: 'Poppins', sans-serif;
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    /* Background pattern repeated on the left and right */
+    background: url('https://tharfoundation.org/app/themes/tharfoundation/assets/images/bg-vision-mission.jpg');
+    /* Ensure the pattern repeats both horizontally and vertically */
+    background-repeat: repeat-y;
+
+    /* You can control the width of the pattern if needed */
+    background-size: 100%;  /* This keeps the image width as is and scales the height */
+    
+}
 
         .container {
             max-width: 600px;
@@ -14,13 +25,13 @@
         }
 
         h1 {
-            color: #FFD700;
+            color: #a01212;
             text-align: center;
             margin-bottom: 30px;
         }
 
         form {
-            background-color: #1E1E1E;
+            background-color: #f5e7d0;
             padding: 20px;
             border-radius: 12px;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
@@ -29,7 +40,7 @@
         label {
             display: block;
             margin-bottom: 10px;
-            color: #FFD700;
+            color: #a01212;
             font-weight: 500;
         }
 
@@ -40,14 +51,14 @@
             margin-bottom: 20px;
             border: 1px solid #272727;
             border-radius: 6px;
-            background-color: #2C2E3A;
-            color: #FFFFFF;
+            background-color: #fff;
+            color: black;
         }
 
         button {
             width: 100%;
             padding: 10px;
-            background-color: #FFD700;
+            background-color: #a01212;
             border: none;
             border-radius: 6px;
             color: #1E1E1E;
@@ -67,7 +78,7 @@
         }
 
         a {
-            color: #FFD700;
+            color: #a01212;
             text-decoration: none;
             transition: color 0.3s;
         }
@@ -81,8 +92,8 @@
     margin-bottom: 20px;
     border: 1px solid #272727;
     border-radius: 6px;
-    background-color: #2C2E3A;
-    color: #FFFFFF;
+    background-color: #fff;
+    color: black;
     font-family: 'Poppins', sans-serif;
 }
 
@@ -91,7 +102,7 @@
     <div class="container">
         <h1>Signup</h1>
         <form action="{{ url_for('signup') }}" method="post">
-            <label for="user_type">Enter the User Type (Admin, Customer):</label>
+            <label for="user_type">User Type:</label>
             <select id="user_type" name="user_type" required>
             <option value="Admin">Admin</option>
             <option value="Customer">Customer</option>

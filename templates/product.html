@@ -311,33 +311,44 @@
   
   <!-- Navigation Bar -->
   <nav class="navbar navbar-expand-lg custom-navbar">
-    <div class="container d-flex flex-column align-items-center">
-      <div class="collapse navbar-collapse justify-content-center" id="navbarNavDropdown">
-        <img src="https://videos.openai.com/vg-assets/assets%2Ftask_01jtqqhmazewnv1vzdm5pw8k7j%2F1746700718_img_0.webp?st=2025-05-08T09%3A30%3A04Z&se=2025-05-14T10%3A30%3A04Z&sks=b&skt=2025-05-08T09%3A30%3A04Z&ske=2025-05-14T10%3A30%3A04Z&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skoid=3d249c53-07fa-4ba4-9b65-0bf8eb4ea46a&skv=2019-02-02&sv=2018-11-09&sr=b&sp=r&spr=https%2Chttp&sig=UQdQcdnx0sBYhh0AeOPXcSFSrel1wafN54u4x2qsJ0k%3D&az=oaivgprodscus" alt="Logo" style="width: 120px; height: auto; transition: width 0.3s ease;">
-        <a class="navbar-brand d-flex align-items-center" href="{{ url_for('products') }}">
-          <div>
-            <div style="color: #a01212; font-weight: bold; font-size: 1.5rem;">VIRSA</div>
-            <small style="font-size: 0.75rem; color: #a01212;">FOREVER</small>
-          </div>
-        </a>
-        <ul class="navbar-nav text-center">
-          <li class="nav-item">
+    <div class="container-fluid">
+      <a class="navbar-brand d-flex align-items-center" href="{{ url_for('products') }}">
+        <div>
+          <div style="color: #a01212; font-weight: bold; font-size: 1.5rem;">VIRSA</div>
+          <small style="font-size: 0.75rem; color: #a01212;">FOREVER</small>
+        </div>
+      </a>
+  
+      <!-- toggler with explicit FontAwesome icon -->
+      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavDropdown"
+              aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
+        <i class="fas fa-bars" style="color: #a01212; font-size: 1.5rem;"></i>
+      </button>
+  
+      <div class="collapse navbar-collapse justify-content-between" id="navbarNavDropdown">
+        <ul class="navbar-nav d-flex flex-lg-row flex-column justify-content-center mx-auto shift-right">
+          <li class="nav-item mx-3">
             <a class="nav-link" href="{{ url_for('products') }}"><i class="fas fa-store-alt"></i> Products</a>
           </li>
-          <li class="nav-item">
+          <li class="nav-item mx-3">
             <a class="nav-link" href="{{ url_for('history') }}"><i class="fas fa-history"></i> Shopping History</a>
           </li>
-          <li class="nav-item">
+          <li class="nav-item mx-3">
             <a class="nav-link" href="{{ url_for('cart') }}"><i class="fas fa-shopping-cart"></i> Cart</a>
           </li>
-          <li class="nav-item">
-            <a class="nav-link btn btn-warning" href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt"></i> Logout</a>
-          </li>
-          <li class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle text-uppercase" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="font-family: poppins;">
-              <i class="fas fa-user-circle"></i> {% block additional_nav_links %}{% endblock %}
+        </ul>
+        <ul class="navbar-nav d-flex align-items-center">
+          <li class="nav-item mx-2">
+            <a class="nav-link btn btn-warning" href="{{ url_for('logout') }}">
+              <i class="fas fa-sign-out-alt"></i> Logout
             </a>
-            <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+          </li>
+          <li class="nav-item dropdown mx-2">
+            <a class="nav-link dropdown-toggle text-uppercase" href="#" id="navbarDropdown" role="button" data-toggle="dropdown">
+              <i class="fas fa-user-circle"></i> {% block additional_nav_links %}Welcome, {{ user.first_name }}!{% endblock %}
+
+            </a>
+            <div class="dropdown-menu dropdown-menu-right">
               <a class="dropdown-item" href="/remove_account"><i class="fas fa-user-minus"></i> Remove Account</a>
               <a class="dropdown-item" href="/history"><i class="fas fa-history"></i> View Shopping History</a>
             </div>
@@ -346,6 +357,7 @@
       </div>
     </div>
   </nav>
+  
 {% elif user.user_type == "admin" %}
 <style>
 a {
@@ -450,7 +462,7 @@ a:hover {
         onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='0 4px 20px rgba(0,0,0,0.2)'" />
    
         <div class="price" style="font-weight: bold;">${{ product.price }}</div>
-        <div class="stock">In Stock: {{ product.stock }}</div>
+        <div class="stock">{{ 'In Stock' if product.stock > 0 else 'Out of Stock' }}: {{ product.stock }}</div>
 
         {%if user.user_type == "customer"%}
         <form action="{{ url_for('add_to_cart', product_name=product.name) }}" method="post" class="add-to-cart-form">
@@ -474,4 +486,10 @@ a:hover {
 </main>
 
 </body>
+    <!-- Add before closing body tag -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
 </html>
+

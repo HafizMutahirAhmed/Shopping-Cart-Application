@@ -326,8 +326,8 @@ body {
     /* Hero Section */
     .hero-section {
   width: 100%;
-  background: #fde9d9; /* or use your background-image */
-  padding: 100px 0;
+   /* or use your background-image */
+ 
   color: #000;
 }
 
@@ -352,12 +352,40 @@ body {
         color: #fff;
         font-weight: bold;
     }
+    .who-we-are-section {
+    position: relative;
+    background-attachment: fixed;
+
+
+    background-repeat: no-repeat;
+    color: #fff;
+    text-align: center;
+}
+
 </style>
 
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% if messages %}
+    
+        {% for category, message in messages %}
 
+            <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+
+
+            
+        {% endfor %}
+    
+{% endif %}
+{% endwith %}
     <!-- Hero Section -->
 <!-- Hero Section -->
-<section class="hero-section py-5 text-center" style="background: #fff3e0;">
+
+<section class="hero-section py-5 text-center" >
     <div class="container" data-aos="fade-up">
         <!-- Decorative Icons -->
         <div class="row justify-content-center align-items-center mt-5">
@@ -372,58 +400,32 @@ body {
             Welcome to <span style="color: #a01212; font-weight: 900;">VIRSA FOREVER</span>
         </h1>
         <p class="lead mb-4" style="color: #3c3c3c;">
-            Discover handcrafted elegance rooted in tradition, designed for the modern soul.
-        </p>
+            Savor the authentic flavors of Pakistan — rich, traditional, and made with heart.        </p>
         <a href="#product-section" class="btn btn-lg text-uppercase fw-bold px-4 py-2" style="background-color: #a01212; color: #fff; border: none;">
-            Shop Now
+            Order Now
         </a>
 
         
     </div>
+  
 </section>
 
 
-    
-    
+
     <div class="container py-5">
-        {%if user.user_type == "customer"%}
-        <div class="cart-link">
-            <a href="/cart">
-                <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" fill="currentColor" class="bi bi-cart" viewBox="0 0 16 16">
-                    <path d="M0 1.5A.5.5 0 0 1 .5 1H2a.5.5 0 0 1 .485.379L2.89 3H14.5a.5.5 0 0 1 .491.592l-1.5 8A.5.5 0 0 1 13 12H4a.5.5 0 0 1-.491-.408L2.01 3.607 1.61 2H.5a.5.5 0 0 1-.5-.5M3.102 4l1.313 7h8.17l1.313-7zM5 12a2 2 0 1 0 0 4 2 2 0 0 0 0-4m7 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4m-7 1a1 1 0 1 1 0 2 1 1 0 0 1 0-2m7 0a1 1 0 1 1 0 2 1 1 0 0 1 0-2"/>
-                </svg>
-            </a>
-        </div>
-        {%endif%}
+        
         <div class="row text-center mb-5">
             <div class="col-lg-7 mx-auto">
-                <h1 class="display-4" style="font-weight: bold;">Products</h1>
+                <h1 class="display-4" style="font-weight: bold; color: rgb(0, 128, 0);">Products</h1>
             </div>
         </div>
 
 
-        {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-            
-                {% for category, message in messages %}
 
-                    <div class="alert alert-warning alert-dismissible fade show" role="alert">
-                        {{ message }}
-                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                        </button>
-                    </div>
-
-
-                    
-                {% endfor %}
-            
-        {% endif %}
-        {% endwith %}
         {%if products != 'no product' %}
         <!-- Card Section -->
         <div class="container-fluid px-0">
-            <div class="row gx-0">
+            <div class="row gx-0 row justify-content-center">
                 {% for product in products %}
                 <div class="col-12 col-md-4 mb-4">
                     <div class="card h-100 border-0 rounded-4 shadow-lg mx-2">
@@ -434,9 +436,10 @@ body {
                             <h5 class="card-title">
                                 <a class="text-decoration-none text-dark" href="{{ url_for('product', product_name=product.name) }}">{{ product.name }}</a>
                             </h5>
-                            <p class="card-text text-muted small">{{ product.description }}</p>
+                            <p class="card-text text-muted small">  {{ product.description[:30] }}...
+                            </p>
                             <strong class="d-block mb-2">${{ product.price }}</strong>
-                            <p class="text-muted small">Only {{ product.stock }} left</p>
+                            <p class="text-muted small">{{ 'Only' if product.stock > 0 else 'Out of Stock' }} {{ product.stock if product.stock>0}} {{ 'left' if product.stock > 0 else '' }} </p>
                             {% if user.user_type == "customer" %}
                             <form action="{{ url_for('add_to_cart', product_name=product.name) }}" method="post">
                                 <div class="input-group mb-2 justify-content-center">
@@ -456,6 +459,7 @@ body {
         {%else%}
         <p style="text-align: center;">there is no product! kindly visit soon!</p>
         {%endif%}
-        
+
+              
       
 {% endblock %}

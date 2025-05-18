@@ -47,30 +47,29 @@ class DataHandler:
 
    
         self.cursor.execute('''
-        CREATE TABLE IF NOT EXISTS feedback (
-            id INTEGER PRIMARY KEY,
-            rating INTEGER CHECK (rating BETWEEN 1 AND 5),
-            comments TEXT,
-            prod_id INTEGER NOT NULL,
-            order_id INTEGER NOT NULL,
-            customer_id INTEGER NOT NULL,
-            FOREIGN KEY (prod_id) REFERENCES Products(id) ON DELETE CASCADE,
-            FOREIGN KEY (order_id) REFERENCES Orders(id) ON DELETE CASCADE,
-            FOREIGN KEY (customer_id) REFERENCES Users(id) ON DELETE CASCADE
-        );
+    CREATE TABLE IF NOT EXISTS Feedback (
+        rating INTEGER CHECK (rating BETWEEN 1 AND 5),
+        comments TEXT,
+        prod_id INTEGER NOT NULL,
+        order_id INTEGER NOT NULL,
+        PRIMARY KEY (order_id, prod_id),
+        FOREIGN KEY (prod_id) REFERENCES Products(id) ON DELETE CASCADE,
+        FOREIGN KEY (order_id) REFERENCES Orders(id) ON DELETE CASCADE
+    );
+''')
 
-    ''')
         
         
         self.cursor.execute('''
-        CREATE TABLE IF NOT EXISTS Cart (
-            id INTEGER PRIMARY KEY NOT NULL UNIQUE,
-            cart_product_quantity INTEGER NOT NULL,
-            user_id INTEGER,
-            product_id INTEGER,
-            FOREIGN KEY (user_id) REFERENCES Users(id) ON DELETE CASCADE,
-            FOREIGN KEY (product_id) REFERENCES Products(id) ON DELETE CASCADE
-        )
+            CREATE TABLE IF NOT EXISTS Cart (
+                cart_product_quantity INTEGER NOT NULL,
+                user_id INTEGER NOT NULL,
+                product_id INTEGER NOT NULL,
+                PRIMARY KEY (user_id, product_id),
+                FOREIGN KEY (user_id) REFERENCES Users(id) ON DELETE CASCADE,
+                FOREIGN KEY (product_id) REFERENCES Products(id) ON DELETE CASCADE
+            )
+
     ''')
         self.cursor.execute('''
         CREATE TABLE IF NOT EXISTS Orders (
@@ -78,7 +77,6 @@ class DataHandler:
             order_date TEXT DEFAULT (DATE('now')),
             order_time TEXT DEFAULT (TIME('now')),
             total_amount INTEGER NOT NULL CHECK(total_amount >= 0),
-            address TEXT NOT NULL,
             customer_id INTEGER NOT NULL,
             status TEXT NOT NULL CHECK(status IN ('DELIVERED', 'PENDING')),
             FOREIGN KEY (customer_id) REFERENCES Users(id) ON DELETE CASCADE
@@ -300,7 +298,6 @@ class DataHandler:
                 Orders.id AS order_id,
                 Orders.order_date,
                 Orders.order_time,
-                Orders.address,
                 Orders.status,
                 Orders.total_amount,
                 Products.product_name AS product_name,
@@ -318,15 +315,15 @@ class DataHandler:
         
         return shopping_history
 
-    def save_history(self, order_date, order_time, order_cost, product_name_and_quantity, shipping_address):
+    def save_history(self, order_date, order_time, order_cost, product_name_and_quantity):
         self.cursor.execute('SELECT id FROM Users WHERE username = ?', (self.logged_in_user.username,))
         logged_user_id = self.cursor.fetchone()[0]
 
         # Insert into Orders (single row)
         self.cursor.execute('''
-            INSERT INTO Orders (customer_id, address, order_date, order_time, total_amount, status)
-            VALUES (?, ?, ?, ?, ?, ?)
-        ''', (logged_user_id, shipping_address, order_date, order_time, order_cost, 'PENDING'))
+            INSERT INTO Orders (customer_id, order_date, order_time, total_amount, status)
+            VALUES (?, ?, ?, ?, ?)
+        ''', (logged_user_id, order_date, order_time, order_cost, 'PENDING'))
 
         order_id = self.cursor.lastrowid  # Get the newly created order's ID
 
@@ -353,9 +350,13 @@ class DataHandler:
         self.cursor.execute('SELECT id FROM Users WHERE username = ?', (self.logged_in_user.username,))
         logged_user_id = self.cursor.fetchone()[0]
         print(logged_user_id, rating, comment)
-        self.cursor.execute('INSERT INTO Feedback (rating, comments, prod_id, order_id, customer_id) VALUES (?, ?, ?, ?, ?)', (rating, comment,product_id, order_id, logged_user_id))
+        self.cursor.execute(
+            'INSERT INTO Feedback (rating, comments, prod_id, order_id) VALUES (?, ?, ?, ?)',
+            (rating, comment, product_id, order_id)
+        )
         self.connect.commit()
     def check_feedback_exists(self, order_id, product_id):
+        print(order_id, product_id)
         self.cursor.execute('''
             SELECT 1 FROM Feedback
             WHERE order_id = ? AND prod_id = ?
@@ -372,7 +373,8 @@ class DataHandler:
                 Orders.status,
                 Users.first_name || ' ' || Users.last_name AS customer_name,
                 Products.product_name,
-                OrderDetails.quantity AS product_quantity
+                OrderDetails.quantity AS product_quantity,
+                Products.id AS product_id
             FROM Orders
             JOIN Users ON Orders.customer_id = Users.id
             JOIN OrderDetails ON Orders.id = OrderDetails.order_id
@@ -404,13 +406,15 @@ class DataHandler:
         self.connect.commit()
     
     def get_feedback_data(self, product_name):
-        self.cursor.execute('''SELECT 
+        self.cursor.execute('''
+        SELECT 
             Users.first_name || ' ' || Users.last_name AS reviewer_name,
-            feedback.comments,
-            feedback.rating
-        FROM feedback
-        JOIN Users ON feedback.customer_id = Users.id
-        JOIN Products ON feedback.prod_id = Products.id
+            Feedback.comments,
+            Feedback.rating
+        FROM Feedback
+        JOIN Products ON Feedback.prod_id = Products.id
+        JOIN Orders ON Feedback.order_id = Orders.id
+        JOIN Users ON Orders.customer_id = Users.id
         WHERE Products.product_name = ?
     ''', (product_name,))
         feedback_data = self.cursor.fetchall()
@@ -572,20 +576,19 @@ class Customer(User, DataHandler, Checkout):
         current_time = str(time.strftime("%H:%M:%S"))
         total_cost = self.shopping_cart.get_total_price()
         #newly added
-        shipping_address = self.address
         cart_items = {}
         for cart_product in self.shopping_cart.cart_products:
             cart_items[cart_product.name] = cart_product.cart_product_quantity
 
-        self.add_record_to_shopping_history(cart_items, current_date, current_time, total_cost,shipping_address,'PENDING')
+        self.add_record_to_shopping_history(cart_items, current_date, current_time, total_cost,'PENDING')
         #newly updated
-        self.save_history(current_date, current_time, total_cost, cart_items, shipping_address)
+        self.save_history(current_date, current_time, total_cost, cart_items)
         self.clear_cart('checkout')
         self.products = self.load_products()
         self.load_history_from_database()
     
-    def add_record_to_shopping_history(self, cart_products, order_date, order_time, cart_cost, shipping_address, status):
-        self.shopping_history.add_shopping_record(cart_products, order_date, order_time, cart_cost, shipping_address,status)
+    def add_record_to_shopping_history(self, cart_products, order_date, order_time, cart_cost, status):
+        self.shopping_history.add_shopping_record(cart_products, order_date, order_time, cart_cost,status)
 
     def view_shopping_history(self):
         for i in range(len(self.shopping_history.shopping_records)):
@@ -858,7 +861,7 @@ class ShoppingHistory:
         if self.shopping_records:
             for record in self.shopping_records:
                 if (database_record[2] == record.order_time) and (str(database_record[1]) == str(record.order_date)):
-                    record.add_items(database_record[6], database_record[7], database_record[8])  
+                    record.add_items(database_record[5], database_record[6], database_record[7])  
                     found = True  
                     break  
 
@@ -866,14 +869,13 @@ class ShoppingHistory:
             print(database_record)
             self.shopping_records.append(
                 ShoppingRecord(
-                    {database_record[6]: {"quantity": database_record[7], "product_id": database_record[8]}},
+                    {database_record[5]: {"quantity": database_record[6], "product_id": database_record[7]}},
                     database_record[1], 
                     database_record[2], 
-                    database_record[5],
-                    database_record[3],
                     database_record[4],
+                    database_record[3],
                     database_record[0],
-                    database_record[8],
+                    database_record[7],
                     None
                 )
             )
@@ -900,20 +902,19 @@ class ShoppingHistory:
                 records_by_date.append(single_record)
         return records_by_date
             
-    def add_shopping_record(self, cart_products, order_date, order_time, total_amount, shipping_address, status):
+    def add_shopping_record(self, cart_products, order_date, order_time, total_amount, status):
 
-        self.shopping_records.append(ShoppingRecord(cart_products, order_date, order_time, total_amount, shipping_address, status,order_id='AMAZING', product_id=None, feedback_exists=None))
+        self.shopping_records.append(ShoppingRecord(cart_products, order_date, order_time, total_amount, status,order_id='AMAZING', product_id=None, feedback_exists=None))
 
     
         
 class ShoppingRecord:
-    def __init__(self, cart_products, order_date, order_time, total_amount, shipping_address, status, order_id, product_id, feedback_exists):
+    def __init__(self, cart_products, order_date, order_time, total_amount, status, order_id, product_id, feedback_exists):
         self.order_id = order_id
         self.order_items = cart_products #dict of product name to quantity
         self.order_date = order_date
         self.order_time = order_time    
         self.total_amount = total_amount
-        self.shipping_address = shipping_address
         self.product_id = product_id
         self.status = status
         self.feedback_exists = feedback_exists
