@@ -1,11 +1,17 @@
 from abc import ABC, abstractmethod
 import shutil
 import os
+import psycopg2
+import os
+
 
 class DataHandler:
     import sqlite3 as sql
-    connect = sql.connect('CEP.sqlite', check_same_thread=False)
-    connect.execute("PRAGMA foreign_keys = ON")
+    from dotenv import load_dotenv
+    load_dotenv()
+
+    DATABASE_URL = os.getenv("DATABASE_URL")
+    connect = psycopg2.connect(DATABASE_URL, sslmode='require')
     cursor = connect.cursor()
     logged_in_user = None
 
@@ -20,32 +26,72 @@ class DataHandler:
         os.mkdir(directory_path) 
 
     def load_database(self):
-        DataHandler.create_folder('./static')                                                                    #why making folders again???
+        DataHandler.create_folder('./static')                                                                    #why making folders again%s%s%s
         DataHandler.create_folder('./product_images')
 
+# USERS
         self.cursor.execute('''
-        CREATE TABLE IF NOT EXISTS Products(
-            id INTEGER PRIMARY KEY NOT NULL UNIQUE,
-            product_name TEXT NOT NULL,
-            product_price INTEGER NOT NULL,
-            product_description TEXT NOT NULL,
-            product_stock INTEGER NOT NULL,
-            product_image BLOB
-        )
-    ''')
-        self.cursor.execute('''
-        CREATE TABLE IF NOT EXISTS Users(
-            id INTEGER PRIMARY KEY NOT NULL UNIQUE,
-            username TEXT NOT NULL,
-            password TEXT NOT NULL,
-            first_name TEXT NOT NULL,
-            last_name TEXT NOT NULL,
-            address TEXT,
-            user_type TEXT NOT NULL
-        )
+    CREATE TABLE IF NOT EXISTS Users (
+        id SERIAL PRIMARY KEY,
+        username TEXT NOT NULL,
+        password TEXT NOT NULL,
+        first_name TEXT NOT NULL,
+        last_name TEXT NOT NULL,
+        address TEXT,
+        user_type TEXT NOT NULL
+    );
     ''')
 
-   
+    # PRODUCTS
+        self.cursor.execute('''
+    CREATE TABLE IF NOT EXISTS Products (
+        id SERIAL PRIMARY KEY,
+        product_name TEXT NOT NULL,
+        product_price INTEGER NOT NULL,
+        product_description TEXT NOT NULL,
+        product_stock INTEGER NOT NULL,
+        product_image BYTEA
+    );
+    ''')
+
+    # ORDERS
+        self.cursor.execute('''
+    CREATE TABLE IF NOT EXISTS Orders (
+        id SERIAL PRIMARY KEY,
+        order_date DATE DEFAULT CURRENT_DATE,
+        order_time TIME DEFAULT CURRENT_TIME,
+        total_amount INTEGER NOT NULL CHECK (total_amount >= 0),
+        customer_id INTEGER NOT NULL,
+        status TEXT NOT NULL CHECK (status IN ('DELIVERED', 'PENDING')),
+        FOREIGN KEY (customer_id) REFERENCES Users(id) ON DELETE CASCADE
+    );
+    ''')
+
+    # ORDER DETAILS
+        self.cursor.execute('''
+    CREATE TABLE IF NOT EXISTS OrderDetails (
+        order_id INTEGER NOT NULL,
+        prod_id INTEGER NOT NULL,
+        quantity INTEGER NOT NULL CHECK (quantity > 0),
+        PRIMARY KEY (order_id, prod_id),
+        FOREIGN KEY (order_id) REFERENCES Orders(id) ON DELETE CASCADE,
+        FOREIGN KEY (prod_id) REFERENCES Products(id) ON DELETE CASCADE
+    );
+    ''')
+
+    # CART
+        self.cursor.execute('''
+    CREATE TABLE IF NOT EXISTS Cart (
+        cart_product_quantity INTEGER NOT NULL,
+        user_id INTEGER NOT NULL,
+        product_id INTEGER NOT NULL,
+        PRIMARY KEY (user_id, product_id),
+        FOREIGN KEY (user_id) REFERENCES Users(id) ON DELETE CASCADE,
+        FOREIGN KEY (product_id) REFERENCES Products(id) ON DELETE CASCADE
+    );
+    ''')
+
+    # FEEDBACK (last)
         self.cursor.execute('''
     CREATE TABLE IF NOT EXISTS Feedback (
         rating INTEGER CHECK (rating BETWEEN 1 AND 5),
@@ -56,46 +102,11 @@ class DataHandler:
         FOREIGN KEY (prod_id) REFERENCES Products(id) ON DELETE CASCADE,
         FOREIGN KEY (order_id) REFERENCES Orders(id) ON DELETE CASCADE
     );
-''')
-
-        
-        
-        self.cursor.execute('''
-            CREATE TABLE IF NOT EXISTS Cart (
-                cart_product_quantity INTEGER NOT NULL,
-                user_id INTEGER NOT NULL,
-                product_id INTEGER NOT NULL,
-                PRIMARY KEY (user_id, product_id),
-                FOREIGN KEY (user_id) REFERENCES Users(id) ON DELETE CASCADE,
-                FOREIGN KEY (product_id) REFERENCES Products(id) ON DELETE CASCADE
-            )
-
     ''')
-        self.cursor.execute('''
-        CREATE TABLE IF NOT EXISTS Orders (
-            id INTEGER PRIMARY KEY,
-            order_date TEXT DEFAULT (DATE('now')),
-            order_time TEXT DEFAULT (TIME('now')),
-            total_amount INTEGER NOT NULL CHECK(total_amount >= 0),
-            customer_id INTEGER NOT NULL,
-            status TEXT NOT NULL CHECK(status IN ('DELIVERED', 'PENDING')),
-            FOREIGN KEY (customer_id) REFERENCES Users(id) ON DELETE CASCADE
-        );
 
-    ''')
-        self.cursor.execute('''
-        CREATE TABLE IF NOT EXISTS OrderDetails (
-            order_id INTEGER NOT NULL,
-            prod_id INTEGER NOT NULL,
-            quantity INTEGER NOT NULL CHECK(quantity > 0),
-            PRIMARY KEY (order_id, prod_id),
-            FOREIGN KEY (order_id) REFERENCES Orders(id) ON DELETE CASCADE,
-            FOREIGN KEY (prod_id) REFERENCES Products(id) ON DELETE CASCADE
-        );
-    ''')        
         self.cursor.execute('SELECT * FROM Users')
         rows = self.cursor.fetchall()
-        
+            
         self.connect.commit()
        
     def load_users(self):
@@ -115,17 +126,17 @@ class DataHandler:
         
         self.cursor.execute('''
         INSERT INTO Users(username, password, first_name, last_name, address, user_type) 
-        VALUES (?,?,?,?,?,?)''', 
+        VALUES (%s,%s,%s,%s,%s,%s)''', 
         (user.username, user.password,user.first_name, user.last_name, user.address,user.user_type)
         )
         self.connect.commit()
         
     def delete_user_from_database(self, user_name): 
-        self.cursor.execute('SELECT id FROM Users WHERE username = ?', (user_name,))
+        self.cursor.execute('SELECT id FROM Users WHERE username = %s', (user_name,))
         deleted_user_id = self.cursor.fetchone()[0]
         self.clear_cart_from_database(user_name)
         self.delete_history(deleted_user_id)
-        self.cursor.execute('DELETE FROM Users WHERE username = ?',(user_name,))
+        self.cursor.execute('DELETE FROM Users WHERE username = %s',(user_name,))
         
         self.connect.commit()
 
@@ -150,42 +161,42 @@ class DataHandler:
     
     
     def delete_product_from_database(self, product_name):
-        self.cursor.execute('SELECT id FROM Products WHERE product_name = ?', (product_name,))
+        self.cursor.execute('SELECT id FROM Products WHERE product_name = %s', (product_name,))
         result = self.cursor.fetchone()
 
         if result:
             deleted_product_id = result[0]
             # Delete from Cart first to avoid foreign key constraint error
-            self.cursor.execute('DELETE FROM Cart WHERE product_id = ?', (deleted_product_id,))
-            self.cursor.execute('DELETE FROM Products WHERE product_name = ?', (product_name,))
+            self.cursor.execute('DELETE FROM Cart WHERE product_id = %s', (deleted_product_id,))
+            self.cursor.execute('DELETE FROM Products WHERE product_name = %s', (product_name,))
             self.connect.commit()
 
         
     def save_product(self, product):
         self.cursor.execute('''
             INSERT INTO Products(product_name, product_price, product_description, product_stock, product_image) 
-            VALUES (?,?,?,?,?)''', (product.name, product.price, product.description, product.stock, product.image)
+            VALUES (%s,%s,%s,%s,%s)''', (product.name, product.price, product.description, product.stock, product.image)
         )
         self.connect.commit()
     def update_product(self, product):        
-        self.cursor.execute('SELECT id FROM Products WHERE product_name = ?', (product.name,) )
+        self.cursor.execute('SELECT id FROM Products WHERE product_name = %s', (product.name,) )
         updated_product_id = self.cursor.fetchone()[0]
         
         self.cursor.execute('''
             UPDATE Products 
-            SET product_name = ?, product_price = ?, product_description = ?, product_stock = ?, product_image=? WHERE id = ?''', 
+            SET product_name = %s, product_price = %s, product_description = %s, product_stock = %s, product_image=%s WHERE id = %s''', 
             (product.name, product.price, product.description, product.stock,product.image, updated_product_id)
         )
 
-        self.cursor.execute('SELECT id FROM Products WHERE product_name = ?', (product.name,))
+        self.cursor.execute('SELECT id FROM Products WHERE product_name = %s', (product.name,))
         selected_product_id = self.cursor.fetchone()[0]
        
         self.cursor.execute(
-                'DELETE FROM Cart WHERE product_id = ?',(selected_product_id,)
+                'DELETE FROM Cart WHERE product_id = %s',(selected_product_id,)
             )
         self.connect.commit()
     def load_cart(self):
-        self.cursor.execute('SELECT id FROM Users WHERE username = ?', (self.logged_in_user.username,) )
+        self.cursor.execute('SELECT id FROM Users WHERE username = %s', (self.logged_in_user.username,) )
         logged_user_id = self.cursor.fetchone()[0]
         self.cursor.execute('''
             SELECT Products.product_name, 
@@ -196,35 +207,35 @@ class DataHandler:
                 Products.product_image
                 FROM Products 
                 JOIN Cart ON Cart.product_id = Products.id 
-                WHERE Cart.user_id = ?
+                WHERE Cart.user_id = %s
                 ''', (logged_user_id,))
         all_cart_products = self.cursor.fetchall()
         self.connect.commit()
         return all_cart_products
 
     def save_cart_product(self, product, quantity, mode_of_operation = None, old_set_quantity = 0):
-        self.cursor.execute('SELECT id FROM Users WHERE username = ?', (self.logged_in_user.username,))
+        self.cursor.execute('SELECT id FROM Users WHERE username = %s', (self.logged_in_user.username,))
         logged_user_id = self.cursor.fetchone()[0]
 
-        self.cursor.execute('SELECT id FROM Products WHERE product_name = ?', (product.name,))
+        self.cursor.execute('SELECT id FROM Products WHERE product_name = %s', (product.name,))
         selected_product_id = self.cursor.fetchone()[0]
 
-        self.cursor.execute('SELECT product_stock FROM Products WHERE id = ?', (selected_product_id,))
+        self.cursor.execute('SELECT product_stock FROM Products WHERE id = %s', (selected_product_id,))
         selected_product_stock = self.cursor.fetchone()[0]
         
         if mode_of_operation == 'update':
             self.cursor.execute(
-                'DELETE FROM Cart WHERE product_id = ? AND user_id = ?',(selected_product_id, logged_user_id)
+                'DELETE FROM Cart WHERE product_id = %s AND user_id = %s',(selected_product_id, logged_user_id)
             )
         if mode_of_operation != 'checkout':
             self.cursor.execute(
-                'INSERT INTO Cart(cart_product_quantity, user_id, product_id) VALUES (?, ?, ?)',
+                'INSERT INTO Cart(cart_product_quantity, user_id, product_id) VALUES (%s, %s, %s)',
                 (quantity, logged_user_id, selected_product_id)
             )
 
         if mode_of_operation == 'checkout':
             self.cursor.execute(
-                'SELECT user_id, cart_product_quantity FROM Cart WHERE product_id = ?', (selected_product_id,)
+                'SELECT user_id, cart_product_quantity FROM Cart WHERE product_id = %s', (selected_product_id,)
             )
             other_users_carts = self.cursor.fetchall()
             
@@ -233,22 +244,22 @@ class DataHandler:
                     if cart_quantity > selected_product_stock - quantity:
                         new_quantity = selected_product_stock - quantity
                         self.cursor.execute(
-                            'UPDATE Cart SET cart_product_quantity = ? WHERE product_id = ? AND user_id = ?',
+                            'UPDATE Cart SET cart_product_quantity = %s WHERE product_id = %s AND user_id = %s',
                             (new_quantity, selected_product_id, user_id)
                         )
                     else:
                         new_quantity = cart_quantity
                         self.cursor.execute(
-                            'UPDATE Cart SET cart_product_quantity = ? WHERE product_id = ? AND user_id = ?',
+                            'UPDATE Cart SET cart_product_quantity = %s WHERE product_id = %s AND user_id = %s',
                             (new_quantity, selected_product_id, user_id)
                         )
                            
             if (selected_product_stock - quantity) ==0:
                 self.cursor.execute(
-                    'DELETE FROM Cart WHERE product_id = ?',(selected_product_id,)
+                    'DELETE FROM Cart WHERE product_id = %s',(selected_product_id,)
                 )
             self.cursor.execute(
-                'UPDATE Products SET product_stock = ? WHERE id = ?',
+                'UPDATE Products SET product_stock = %s WHERE id = %s',
                 (selected_product_stock - quantity, selected_product_id)
             )
             
@@ -256,41 +267,41 @@ class DataHandler:
     def delete_cart_products(self, mode, product = None, removed_product_quantity = 0):
         if mode == 'all_products':
             for cart_product in self.load_cart():
-                self.cursor.execute('SELECT id FROM Products WHERE product_name = ?', (cart_product[0],))
+                self.cursor.execute('SELECT id FROM Products WHERE product_name = %s', (cart_product[0],))
                 selected_product_id = self.cursor.fetchone()[0]
 
                 self.cursor.execute(
-                    'UPDATE Products SET product_stock = ? WHERE id = ?',
+                    'UPDATE Products SET product_stock = %s WHERE id = %s',
                     (cart_product[3] + cart_product[4], selected_product_id)
                 )           
         elif mode == 'checkout':
             pass
         elif mode == 'single_product':
-            self.cursor.execute('SELECT id FROM Products WHERE product_name = ?', (product.name,))
+            self.cursor.execute('SELECT id FROM Products WHERE product_name = %s', (product.name,))
             selected_product_id = self.cursor.fetchone()[0]
 
-            self.cursor.execute('SELECT product_stock FROM Products WHERE id = ?', (selected_product_id,))
+            self.cursor.execute('SELECT product_stock FROM Products WHERE id = %s', (selected_product_id,))
             selected_product_stock = self.cursor.fetchone()[0]
 
-            self.cursor.execute('SELECT id FROM Users WHERE username = ?', (self.logged_in_user.username,))
+            self.cursor.execute('SELECT id FROM Users WHERE username = %s', (self.logged_in_user.username,))
             logged_user_id = self.cursor.fetchone()[0]
-            self.cursor.execute('DELETE FROM Cart WHERE product_id = ? AND user_id = ?',(selected_product_id, logged_user_id))
+            self.cursor.execute('DELETE FROM Cart WHERE product_id = %s AND user_id = %s',(selected_product_id, logged_user_id))
 
         self.connect.commit()
 
     def clear_cart_from_database(self, user_name, mode=None):
-        self.cursor.execute('SELECT id FROM Users WHERE username = ?', (user_name,))
+        self.cursor.execute('SELECT id FROM Users WHERE username = %s', (user_name,))
         logged_user_id = self.cursor.fetchone()[0]
         if mode == 'checkout':
             self.delete_cart_products(mode)
         else:
             self.delete_cart_products('all_products')
-        self.cursor.execute('DELETE FROM Cart WHERE user_id = ?', (logged_user_id,))
+        self.cursor.execute('DELETE FROM Cart WHERE user_id = %s', (logged_user_id,))
         self.connect.commit()
 
         
     def load_history(self):
-        self.cursor.execute('SELECT id FROM Users WHERE username = ?', (self.logged_in_user.username,))
+        self.cursor.execute('SELECT id FROM Users WHERE username = %s', (self.logged_in_user.username,))
         logged_user_id = self.cursor.fetchone()[0]
 
         self.cursor.execute('''
@@ -306,7 +317,7 @@ class DataHandler:
             FROM Orders
             JOIN OrderDetails ON Orders.id = OrderDetails.order_id
             JOIN Products ON OrderDetails.prod_id = Products.id
-            WHERE Orders.customer_id = ?
+            WHERE Orders.customer_id = %s
             ORDER BY Orders.order_date DESC, Orders.order_time DESC
         ''', (logged_user_id,))
         
@@ -316,13 +327,13 @@ class DataHandler:
         return shopping_history
 
     def save_history(self, order_date, order_time, order_cost, product_name_and_quantity):
-        self.cursor.execute('SELECT id FROM Users WHERE username = ?', (self.logged_in_user.username,))
+        self.cursor.execute('SELECT id FROM Users WHERE username = %s', (self.logged_in_user.username,))
         logged_user_id = self.cursor.fetchone()[0]
 
         # Insert into Orders (single row)
         self.cursor.execute('''
             INSERT INTO Orders (customer_id, order_date, order_time, total_amount, status)
-            VALUES (?, ?, ?, ?, ?)
+            VALUES (%s, %s, %s, %s, %s)
         ''', (logged_user_id, order_date, order_time, order_cost, 'PENDING'))
 
         order_id = self.cursor.lastrowid  # Get the newly created order's ID
@@ -330,13 +341,13 @@ class DataHandler:
         # Insert each product into OrderDetails
         for product_name, product_quantity in product_name_and_quantity.items():
             # Get the product ID from the product name
-            self.cursor.execute('SELECT id FROM Products WHERE product_name = ?', (product_name,))
+            self.cursor.execute('SELECT id FROM Products WHERE product_name = %s', (product_name,))
             result = self.cursor.fetchone()
             if result:
                 product_id = result[0]
                 self.cursor.execute('''
                     INSERT INTO OrderDetails (order_id, prod_id, quantity)
-                    VALUES (?, ?, ?)
+                    VALUES (%s, %s, %s)
                 ''', (order_id, product_id, product_quantity))
 
         self.connect.commit()
@@ -344,14 +355,14 @@ class DataHandler:
     def delete_history(self, deleted_user_id):
         
 
-        self.cursor.execute('DELETE FROM Orders WHERE customer_id = ?',(deleted_user_id,))
+        self.cursor.execute('DELETE FROM Orders WHERE customer_id = %s',(deleted_user_id,))
         self.connect.commit()
     def save_feedback(self, product_id, order_id, rating, comment):
-        self.cursor.execute('SELECT id FROM Users WHERE username = ?', (self.logged_in_user.username,))
+        self.cursor.execute('SELECT id FROM Users WHERE username = %s', (self.logged_in_user.username,))
         logged_user_id = self.cursor.fetchone()[0]
         print(logged_user_id, rating, comment)
         self.cursor.execute(
-            'INSERT INTO Feedback (rating, comments, prod_id, order_id) VALUES (?, ?, ?, ?)',
+            'INSERT INTO Feedback (rating, comments, prod_id, order_id) VALUES (%s, %s, %s, %s)',
             (rating, comment, product_id, order_id)
         )
         self.connect.commit()
@@ -359,7 +370,7 @@ class DataHandler:
         print(order_id, product_id)
         self.cursor.execute('''
             SELECT 1 FROM Feedback
-            WHERE order_id = ? AND prod_id = ?
+            WHERE order_id = %s AND prod_id = %s
         ''', (order_id, product_id))
         self.connect.commit()
 
@@ -402,7 +413,7 @@ class DataHandler:
         return order_details
     def set_order_status(self, order_id, new_status):
         print('************************',order_id, new_status)
-        self.cursor.execute("UPDATE orders SET status = ? WHERE id = ?", (new_status.upper(), order_id))
+        self.cursor.execute("UPDATE orders SET status = %s WHERE id = %s", (new_status.upper(), order_id))
         self.connect.commit()
     
     def get_feedback_data(self, product_name):
@@ -415,7 +426,7 @@ class DataHandler:
         JOIN Products ON Feedback.prod_id = Products.id
         JOIN Orders ON Feedback.order_id = Orders.id
         JOIN Users ON Orders.customer_id = Users.id
-        WHERE Products.product_name = ?
+        WHERE Products.product_name = %s
     ''', (product_name,))
         feedback_data = self.cursor.fetchall()
         print(feedback_data)
