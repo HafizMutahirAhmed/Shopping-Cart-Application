@@ -1076,16 +1076,16 @@ def products():
     if g.user is None:
         return redirect(url_for('login'))
 
-    if isinstance(g.user, Customer):
-        products = g.user.view_products()
-        for product in products:
-            try:
-                product.image_url = url_for('static', filename=str(product.name) + '.jpg')
-            except:
-                pass
-        return render_template('products.html', products=products, user=g.user)
-    else:
-        return redirect(url_for('admin_dashboard'))
+    # if isinstance(g.user, Customer):
+    products = g.user.view_products()
+    for product in products:
+        try:
+            product.image_url = url_for('static', filename=str(product.name) + '.jpg')
+        except:
+            pass
+    return render_template('products.html', products=products, user=g.user)
+    # else:
+    #     return redirect(url_for('admin_dashboard'))
 
 
 @app.route('/product/<product_name>', methods=['GET', 'POST'])
