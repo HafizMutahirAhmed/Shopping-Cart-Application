@@ -146,7 +146,10 @@ class DataHandler:
 
     @staticmethod    
     def writeTofile(data, filename):
+        os.makedirs(os.path.dirname(filename), exist_ok=True)
+
         with open(filename, 'wb') as file:
+
             file.write(data)
         
 
