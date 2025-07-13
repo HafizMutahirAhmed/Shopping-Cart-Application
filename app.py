@@ -232,10 +232,25 @@ class DataHandler:
                 'DELETE FROM Cart WHERE product_id = %s AND user_id = %s',(selected_product_id, logged_user_id)
             )
         if mode_of_operation != 'checkout':
-            self.cursor.execute(
-                'INSERT INTO Cart(cart_product_quantity, user_id, product_id) VALUES (%s, %s, %s)',
-                (quantity, logged_user_id, selected_product_id)
-            )
+            
+                self.cursor.execute(
+                    'SELECT 1 FROM Cart WHERE user_id = %s AND product_id = %s',
+                    (logged_user_id, selected_product_id)
+                )
+                exists = self.cursor.fetchone()
+
+                if exists:
+                    # Update quantity instead of inserting
+                    self.cursor.execute(
+                        'UPDATE Cart SET cart_product_quantity = cart_product_quantity + %s WHERE user_id = %s AND product_id = %s',
+                        (quantity, logged_user_id, selected_product_id)
+                    )
+                else:
+                    self.cursor.execute(
+                        'INSERT INTO Cart(cart_product_quantity, user_id, product_id) VALUES (%s, %s, %s)',
+                        (quantity, logged_user_id, selected_product_id)
+                    )
+
 
         if mode_of_operation == 'checkout':
             self.cursor.execute(
@@ -788,18 +803,12 @@ class AccountManager(DataHandler):
         
 
     def validate_login(self, user_name, password):
-        if self.users != []:
+        if self.users:
             for user in self.users:
-                if (user.username == user_name and user.password == password):
-                    login_success = True
-                    break
-                else:
-                    login_success = False
-            if login_success:
-                    DataHandler.logged_in_user = user
-                    
-            else:
-                DataHandler.logged_in_user = None
+                if user.username == user_name and user.password == password:
+                    return user  # ✅ Return the matched user immediately
+        return None  # ❌ No match found
+
 class CartProduct(Product):
     def __init__(self, name, quantity, description, price, stock, image):
         super().__init__(name, description, price, stock, image)
@@ -975,7 +984,7 @@ app = Flask(__name__)
 app.secret_key = '78692mutahir'
 
 # Load once at app start
-DataHandler().load_database()
+# DataHandler().load_database()
 account_manager = AccountManager()
 
 @app.before_request
@@ -1001,17 +1010,19 @@ def login():
         username = request.form['username']
         password = request.form['password']
 
-        account_manager.validate_login(username, password)
-        user = account_manager.logged_in_user
+        user = account_manager.validate_login(username, password)
+
 
         if isinstance(user, Customer):
             session['username'] = user.username
+            g.user = user 
             user.load_cart_from_database()
             user.load_history_from_database()
             return redirect(url_for('products'))
 
         elif isinstance(user, Admin):
             session['username'] = user.username
+            g.user = user 
             return redirect(url_for('admin_dashboard'))
 
         message = 'Invalid credentials!'
@@ -1038,12 +1049,16 @@ def signup():
             account_manager.validate_login(username, password)
             user = account_manager.logged_in_user
 
-            session['username'] = user.username
+            
             if isinstance(user, Customer):
+                session['username'] = user.username
+                g.user = user 
                 user.load_cart_from_database()
                 user.load_history_from_database()
                 return redirect(url_for('products'))
             elif isinstance(user, Admin):
+                session['username'] = user.username
+                g.user = user 
                 return redirect(url_for('admin_dashboard'))
 
         elif status == 'invalid user type':
@@ -1088,9 +1103,9 @@ def product(product_name):
 @app.route('/logout')
 def logout():
     session.clear()
-    DataHandler().load_database()
-    global account_manager
-    account_manager = AccountManager()
+    # DataHandler().load_database()
+    # global account_manager
+    # account_manager = AccountManager()
     return redirect(url_for('login'))
 
 @app.route('/add_to_cart/<product_name>', methods=['GET', 'POST'])
@@ -1240,7 +1255,7 @@ def admin_dashboard():
 def show_all_orders():
     if 'username' not in session:
         return redirect(url_for('login'))
-    user = logged_user
+    user = g.user
     if request.method == 'POST':  
         order_id = request.form['order_id']
         new_status = request.form['status']
