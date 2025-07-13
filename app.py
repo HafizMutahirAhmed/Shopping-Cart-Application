@@ -6,6 +6,100 @@ import os
 import psycopg2
 import os
 
+from itsdangerous import URLSafeTimedSerializer
+import smtplib
+from email.mime.text import MIMEText
+
+SECRET_KEY = "your-secret-key"
+SALT = "email-confirmation-salt"
+
+def generate_token(user_data):
+    s = URLSafeTimedSerializer(SECRET_KEY)
+    return s.dumps(user_data, salt=SALT)
+
+def confirm_token(token, expiration=3600):
+    s = URLSafeTimedSerializer(SECRET_KEY)
+    try:
+        return s.loads(token, salt=SALT, max_age=expiration)
+    except Exception:
+        return None
+
+def send_verification_email(to_email, token):
+    link = f"{os.environ.get('BASE_URL', 'http://localhost:5000')}/verify_email/{token}"
+
+
+    message = f"""
+<html>
+  <body style="margin:0; padding:0; background-color:#fef8f0; font-family: 'Poppins', sans-serif;">
+    <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#fef8f0;">
+      <tr>
+        <td align="center" style="padding: 0;">
+          <!-- Ribbon Background with Center Logo -->
+          <table width="600" cellpadding="0" cellspacing="0" style="background-image: url('https://i.ibb.co/Kx5hfDSb/pattern.png'); background-size: cover; background-repeat: no-repeat; height: 140px;">
+            <tr>
+              <td align="center" valign="middle" style="height:140px;">
+              </td>
+            </tr>
+          </table>
+
+          <!-- Content Section -->
+          <table width="600" cellpadding="0" cellspacing="0" style="background-color:#fff; border-radius:12px; padding:40px; box-shadow:0 4px 12px rgba(0,0,0,0.1);">
+            <tr>
+              <td align="center" style="color: #a01212; font-size: 24px; font-weight: 600; padding-bottom: 10px;">
+                Verify Your Email
+              </td>
+            </tr>
+            <tr>
+              <td align="center" style="color: #272727; font-size: 16px; padding-bottom: 20px;">
+                Hi,<br><br>
+                Click the button below to verify your Gmail and complete your signup process:
+              </td>
+            </tr>
+            <tr>
+              <td align="center">
+                <a href="{link}" style="background-color:#a01212; color:white; padding:12px 24px; text-decoration:none; font-weight:600; border-radius:6px; display:inline-block;">
+                  Verify My Email
+                </a>
+              </td>
+            </tr>
+            <tr>
+              <td align="center" style="padding-top: 30px; color: #666; font-size: 14px;">
+                If you did not request this, you can safely ignore this email.
+              </td>
+            </tr>
+          </table>
+
+          <br><br>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>
+"""
+
+
+
+    msg = MIMEText(message, "html")
+    msg['Subject'] = "Verify Your Email - Shopping Cart App"
+    msg['From'] = "mutahirahmed001@gmail.com"
+    msg['To'] = to_email
+
+    try:
+        server = smtplib.SMTP_SSL('smtp.gmail.com', 465)
+        server.login("mutahirahmed001@gmail.com", "jzeujuilqzhwbgyk")  # No spaces in app password
+        server.sendmail("mutahirahmed001@gmail.com", [to_email], msg.as_string())
+        server.quit()
+        return True
+
+    except smtplib.SMTPRecipientsRefused:
+        return "Invalid email address."
+    except smtplib.SMTPAuthenticationError:
+        return "Authentication failed. Check app password or Gmail."
+    except smtplib.SMTPConnectError:
+        return "Could not connect to Gmail SMTP server."
+    except Exception as e:
+        return f"An unexpected error occurred: {str(e)}"
+
 
 class DataHandler:
     import sqlite3 as sql
@@ -760,33 +854,20 @@ class AccountManager(DataHandler):
     def create_account(self, user_type, username, password, first_name, last_name, address):
         if user_type.lower() == 'customer':
             new_user = Customer(username, password, first_name, last_name, address)
-    
         elif user_type.lower() == 'admin':
             new_user = Admin(username, password, first_name, last_name, address)
-            
-        else:          
-            return ("invalid user type")
-        
-        if self.users != []:
-            for user in self.users:
-                if user.username.lower() == new_user.username.lower():
-                    user_in_database = True
-                    break
-                else:
-                    user_in_database = False
-            
-            if user_in_database:
-                return('user already exists')
-            else:
-                self.users.append(new_user)
-                self.save_user(new_user)
-                
-                return ('account created successfully')
         else:
-            self.users.append(new_user)
-            self.save_user(new_user)
-            
-            return ('account created successfully')
+            return "invalid user type"
+
+        # Check if user exists
+        for user in self.users:
+            if user.username.lower() == username.lower():
+                return "user already exists"
+
+        self.users.append(new_user)
+        self.save_user(new_user)
+        return "account created successfully"
+
         
     def remove_account(self, user_name, password):
             for user in self.users:
@@ -1033,6 +1114,7 @@ def login():
 
     return render_template('login.html')
 
+
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
     if g.user:
@@ -1046,30 +1128,106 @@ def signup():
         address = request.form['address']
         user_type = 'Customer'
 
-        status = account_manager.create_account(user_type, username, password, first_name, last_name, address)
+        # Check if account already exists
+        if account_manager.get_user_by_username(username):
+            return render_template('signup.html', message='User already exists!')
 
-        if status == 'account created successfully':
-            
-            user = account_manager.validate_login(username, password)
+        # Prepare user data for token
+        user_data = {
+            'username': username,
+            'password': password,
+            'first_name': first_name,
+            'last_name': last_name,
+            'address': address,
+            'user_type': user_type
+        }
 
-            
-            if isinstance(user, Customer):
-                session['username'] = user.username
-                g.user = user 
-                user.load_cart_from_database()
-                user.load_history_from_database()
-                return redirect(url_for('products'))
-            elif isinstance(user, Admin):
-                session['username'] = user.username
-                g.user = user 
-                return redirect(url_for('admin_dashboard'))
+        token = generate_token(user_data)
+        send_status = send_verification_email(username, token)
 
-        elif status == 'invalid user type':
-            return render_template('signup.html', message='Invalid user type! Use Admin or Customer.')
-        elif status == 'user already exists':
-            return render_template('signup.html', message='User already exists! Try logging in.')
+        if send_status == True:
+            return render_template('signup.html', message='Check your Gmail to verify and complete signup.')
+        else:
+            return render_template('signup.html', message=f'Email not sent: {send_status}')
 
     return render_template('signup.html')
+
+def styled_message_html(message, show_login_button=False):
+    login_button_html = """
+        <a href="/login" style="
+            display: inline-block;
+            margin-top: 20px;
+            padding: 12px 24px;
+            background-color: #a01212;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: bold;
+            transition: background-color 0.3s ease;
+        ">Login Now</a>
+    """ if show_login_button else ""
+
+    return f"""
+    <html>
+      <head>
+        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+        <style>
+          body {{
+            background-color: #fef8f0;
+            font-family: 'Poppins', sans-serif;
+            color: #a01212;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+          }}
+          .message-box {{
+            background-color: #f5e7d0;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            max-width: 500px;
+          }}
+          h2 {{
+            margin: 0;
+            font-size: 24px;
+            line-height: 1.5;
+          }}
+        </style>
+      </head>
+      <body>
+        <div class="message-box">
+          <h2>{message}</h2>
+          {login_button_html}
+        </div>
+      </body>
+    </html>
+    """
+
+
+@app.route('/verify_email/<token>')
+def verify_email(token):
+    user_data = confirm_token(token)
+    if not user_data:
+        return styled_message_html("❌ Link is invalid or expired.")
+
+    result = account_manager.create_account(
+        user_data['user_type'],
+        user_data['username'],
+        user_data['password'],
+        user_data['first_name'],
+        user_data['last_name'],
+        user_data['address']
+    )
+
+    if result == "account created successfully":
+        return styled_message_html("✅ Email verified! Your account is now created.", show_login_button=True)
+    elif result == "user already exists":
+        return styled_message_html("⚠️ This email already has an account.", show_login_button=True)
+    else:
+        return styled_message_html(f"❌ Error: {result}")
 
 @app.route('/products', methods=['GET', 'POST'])
 def products():
