@@ -1,4 +1,6 @@
 from abc import ABC, abstractmethod
+from flask import Flask, render_template, request, redirect, url_for, session, g, flash
+
 import shutil
 import os
 import psycopg2
@@ -13,7 +15,9 @@ class DataHandler:
     DATABASE_URL = os.getenv("DATABASE_URL")
     connect = psycopg2.connect(DATABASE_URL, sslmode='require')
     cursor = connect.cursor()
-    logged_in_user = None
+
+    # logged_in_user = g.user
+
 
     @staticmethod
     def remove_folder(directory_path):
@@ -196,7 +200,7 @@ class DataHandler:
             )
         self.connect.commit()
     def load_cart(self):
-        self.cursor.execute('SELECT id FROM Users WHERE username = %s', (self.logged_in_user.username,) )
+        self.cursor.execute('SELECT id FROM Users WHERE username = %s', (g.user.username,) )
         logged_user_id = self.cursor.fetchone()[0]
         self.cursor.execute('''
             SELECT Products.product_name, 
@@ -214,7 +218,7 @@ class DataHandler:
         return all_cart_products
 
     def save_cart_product(self, product, quantity, mode_of_operation = None, old_set_quantity = 0):
-        self.cursor.execute('SELECT id FROM Users WHERE username = %s', (self.logged_in_user.username,))
+        self.cursor.execute('SELECT id FROM Users WHERE username = %s', (g.user.username,))
         logged_user_id = self.cursor.fetchone()[0]
 
         self.cursor.execute('SELECT id FROM Products WHERE product_name = %s', (product.name,))
@@ -283,7 +287,7 @@ class DataHandler:
             self.cursor.execute('SELECT product_stock FROM Products WHERE id = %s', (selected_product_id,))
             selected_product_stock = self.cursor.fetchone()[0]
 
-            self.cursor.execute('SELECT id FROM Users WHERE username = %s', (self.logged_in_user.username,))
+            self.cursor.execute('SELECT id FROM Users WHERE username = %s', (g.user.username,))
             logged_user_id = self.cursor.fetchone()[0]
             self.cursor.execute('DELETE FROM Cart WHERE product_id = %s AND user_id = %s',(selected_product_id, logged_user_id))
 
@@ -301,7 +305,7 @@ class DataHandler:
 
         
     def load_history(self):
-        self.cursor.execute('SELECT id FROM Users WHERE username = %s', (self.logged_in_user.username,))
+        self.cursor.execute('SELECT id FROM Users WHERE username = %s', (g.user.username,))
         logged_user_id = self.cursor.fetchone()[0]
 
         self.cursor.execute('''
@@ -327,7 +331,7 @@ class DataHandler:
         return shopping_history
 
     def save_history(self, order_date, order_time, order_cost, product_name_and_quantity):
-        self.cursor.execute('SELECT id FROM Users WHERE username = %s', (self.logged_in_user.username,))
+        self.cursor.execute('SELECT id FROM Users WHERE username = %s', (g.user.username,))
         logged_user_id = self.cursor.fetchone()[0]
 
         # Insert into Orders (single row)
@@ -363,7 +367,7 @@ class DataHandler:
         self.cursor.execute('DELETE FROM Orders WHERE customer_id = %s',(deleted_user_id,))
         self.connect.commit()
     def save_feedback(self, product_id, order_id, rating, comment):
-        self.cursor.execute('SELECT id FROM Users WHERE username = %s', (self.logged_in_user.username,))
+        self.cursor.execute('SELECT id FROM Users WHERE username = %s', (g.user.username,))
         logged_user_id = self.cursor.fetchone()[0]
         print(logged_user_id, rating, comment)
         self.cursor.execute(
@@ -726,7 +730,15 @@ class Customer(User, DataHandler, Checkout):
 class AccountManager(DataHandler):
     def __init__(self):
         self.users = self.load_users()    #Storing object of Customer and Admin classes
-        
+    # Add this method if it doesn't exist
+    def get_user_by_username(self, username):
+        # Look up and return the user object (Admin or Customer) from DB
+        # Example (pseudo-code):
+        for user in self.users:
+            if user.username == username:
+                return user
+        return None
+
     def create_account(self, user_type, username, password, first_name, last_name, address):
         if user_type.lower() == 'customer':
             new_user = Customer(username, password, first_name, last_name, address)
@@ -959,60 +971,59 @@ class Records(DataHandler):
 
 
 
-
-
-
-
-from flask import Flask, render_template, request, redirect, url_for, flash, session
-
 app = Flask(__name__)
-
 app.secret_key = '78692mutahir'
 
+# Load once at app start
 DataHandler().load_database()
 account_manager = AccountManager()
-logged_user = None
+
+@app.before_request
+def load_logged_in_user():
+    username = session.get('username')
+    if username:
+        g.user = account_manager.get_user_by_username(username)
+    else:
+        g.user = None
+
 @app.route('/')
 def index():
-    if 'username' not in session:
+    if g.user is None:
         return render_template('login.html')
-    return redirect(url_for('products'))    
+    return redirect(url_for('products'))
 
-@app.route('/login', methods=['GET','POST'])
+@app.route('/login', methods=['GET', 'POST'])
 def login():
-    
+    if g.user:
+        return redirect(url_for('products'))
+
     if request.method == 'POST':
-        global logged_user
         username = request.form['username']
         password = request.form['password']
-        
-        
-        account_manager.validate_login(username, password) 
-        
-        
-        logged_user = account_manager.logged_in_user  
-       
-        if isinstance(logged_user, Customer):
-            session['username'] = logged_user.username
-            logged_user.load_cart_from_database()
-            logged_user.load_history_from_database()
-            if 'username' in session:
-                return redirect(url_for('products'))
-            
-        elif isinstance(logged_user, Admin):
-            session['username'] = logged_user.username
-            if 'username' in session:
-                return redirect(url_for('admin_dashboard'))
-            
-        message = 'invalid credentials!'
-        return render_template('login.html', message = message)
-    
+
+        account_manager.validate_login(username, password)
+        user = account_manager.logged_in_user
+
+        if isinstance(user, Customer):
+            session['username'] = user.username
+            user.load_cart_from_database()
+            user.load_history_from_database()
+            return redirect(url_for('products'))
+
+        elif isinstance(user, Admin):
+            session['username'] = user.username
+            return redirect(url_for('admin_dashboard'))
+
+        message = 'Invalid credentials!'
+        return render_template('login.html', message=message)
+
     return render_template('login.html')
 
-
 @app.route('/signup', methods=['GET', 'POST'])
-
 def signup():
+    if g.user:
+        return redirect(url_for('products'))
+
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
@@ -1020,204 +1031,182 @@ def signup():
         last_name = request.form['last_name']
         address = request.form['address']
         user_type = request.form['user_type']
-        
-        account_creation_status = account_manager.create_account(user_type, username, password, first_name, last_name, address)
-        if account_creation_status == 'account created successfully':
-            account_manager.validate_login(username, password)
-            # global logged_user  
-            logged_user = account_manager.logged_in_user
 
-            if isinstance(logged_user, Customer):
-                session['username'] = logged_user.username
-                logged_user.load_cart_from_database()
-                logged_user.load_history_from_database()
-                if 'username' in session:
-                    return redirect(url_for('products'))
-                
-            elif isinstance(logged_user, Admin):
-                session['username'] = logged_user.username
-                if 'username' in session:
-                    return redirect(url_for('admin_dashboard'))
-            
-            
-        elif account_creation_status == 'invalid user type':
-            message = 'Invalid user type! Kindly write Admin or Customer'
-            return render_template('signup.html', message=message)
-        elif account_creation_status == 'user already exists':
-            message = 'This user is already exists! Try logging in!'
-            return render_template('signup.html', message=message)  
-        
+        status = account_manager.create_account(user_type, username, password, first_name, last_name, address)
+
+        if status == 'account created successfully':
+            account_manager.validate_login(username, password)
+            user = account_manager.logged_in_user
+
+            session['username'] = user.username
+            if isinstance(user, Customer):
+                user.load_cart_from_database()
+                user.load_history_from_database()
+                return redirect(url_for('products'))
+            elif isinstance(user, Admin):
+                return redirect(url_for('admin_dashboard'))
+
+        elif status == 'invalid user type':
+            return render_template('signup.html', message='Invalid user type! Use Admin or Customer.')
+        elif status == 'user already exists':
+            return render_template('signup.html', message='User already exists! Try logging in.')
+
     return render_template('signup.html')
 
-
-@app.route('/products',methods=['GET', 'POST'])
+@app.route('/products', methods=['GET', 'POST'])
 def products():
-    if 'username' not in session:
+    if g.user is None:
         return redirect(url_for('login'))
-    if request.method == 'GET':
-        products = logged_user.view_products()
-        try:
-            for product in products:
-                product.image_url = url_for('static', filename=str(product.name)+'.jpg')
-        except:
-            pass
-        
-        return render_template('products.html', products=products, user = logged_user)
+
+    if isinstance(g.user, Customer):
+        products = g.user.view_products()
+        for product in products:
+            try:
+                product.image_url = url_for('static', filename=str(product.name) + '.jpg')
+            except:
+                pass
+        return render_template('products.html', products=products, user=g.user)
+    else:
+        return redirect(url_for('admin_dashboard'))
 
 
 @app.route('/product/<product_name>', methods=['GET', 'POST'])
 def product(product_name):
-    if 'username' not in session:
+    if g.user is None:
         return redirect(url_for('login'))
-    
+
     reviews = DataHandler().get_feedback_data(product_name)
-    # Fetch the product by ID
-    product = logged_user.get_product_by_name(product_name)
+    product = g.user.get_product_by_name(product_name)
+
     if product is None:
-        # Handle case when product is not found
-        return render_template('404.html')  # or any error page
+        return render_template('404.html')
 
-    # Assign the image URL to the product object (after fetching it)
     product.image_url = url_for('static', filename=f'{product.name}.jpg')
-
-    # Pass the product to the template
-    return render_template('product.html', product=product, reviews = reviews, user = logged_user)
+    return render_template('product.html', product=product, reviews=reviews, user=g.user)
 
 
 @app.route('/logout')
 def logout():
-    global logged_user
-    logged_user = None
-    session.pop('username', None)
+    session.clear()
     DataHandler().load_database()
     global account_manager
     account_manager = AccountManager()
-    
-    
     return redirect(url_for('login'))
 
 @app.route('/add_to_cart/<product_name>', methods=['GET', 'POST'])
 def add_to_cart(product_name):
-    if 'username' not in session:
+    if g.user is None:
         return redirect(url_for('login'))
-    if request.method == 'POST': 
-        user = logged_user
-    
-        product_quantity = request.form['qty']
-    
-        
-        user.add_product_to_cart(product_name, product_quantity)
-        flash(f'Product {product_name} is been added successfully to cart!', 'success')
+
+    if request.method == 'POST':
+        quantity = request.form['qty']
+        g.user.add_product_to_cart(product_name, quantity)
+        flash(f'Product {product_name} has been added to the cart!', 'success')
         return redirect(url_for('products'))
-    
 
 @app.route('/cart', methods=['GET', 'POST'])
-def cart(): 
-    if 'username' not in session:
+def cart():
+    if g.user is None:
         return redirect(url_for('login'))
-    user = logged_user 
-    
-    cart_items = user.view_cart()
-    try:
-        for product in cart_items:
-            product.image_url = url_for('static', filename=str(product.name)+'.jpg')
-    except:
-        pass
-    total_amount = user.get_cart_price()
-    if request.method == 'POST': 
-        product_quantity = request.form['qty']
-        product_name = request.form['product_name']
-        user.update_cart_product_quantity(product_name, product_quantity)
-    return render_template('cart.html', cart=cart_items, total = total_amount, user = logged_user)
+
+    cart_items = g.user.view_cart()
+    for product in cart_items:
+        try:
+            product.image_url = url_for('static', filename=str(product.name) + '.jpg')
+        except:
+            pass
+
+    total_amount = g.user.get_cart_price()
+
+    if request.method == 'POST':
+        name = request.form['product_name']
+        qty = request.form['qty']
+        g.user.update_cart_product_quantity(name, qty)
+
+    return render_template('cart.html', cart=cart_items, total=total_amount, user=g.user)
+
 
 @app.route('/delete_product', methods=['POST'])
 def delete_product():
-    if 'username' not in session:
+    if g.user is None:
         return redirect(url_for('login'))
-    user = logged_user
-    product_name = request.form['deleted_product_name']
-    
-    user.remove_cart_product(product_name)
-    
+
+    name = request.form['deleted_product_name']
+    g.user.remove_cart_product(name)
     return redirect(url_for('cart'))
+
 
 @app.route('/update_cart', methods=['POST'])
 def update_cart():
-    if 'username' not in session:
+    if g.user is None:
         return redirect(url_for('login'))
-    user = logged_user
-    product_name = request.form['updated_product_name']
-    product_quantity = request.form['updated_quantity']
-  
-    user.update_cart_product_quantity(product_name, product_quantity)
+
+    name = request.form['updated_product_name']
+    qty = request.form['updated_quantity']
+    g.user.update_cart_product_quantity(name, qty)
     return redirect(url_for('cart'))
+
 
 @app.route('/checkout', methods=['GET', 'POST'])
 def checkout():
-    if 'username' not in session:
+    if g.user is None:
         return redirect(url_for('login'))
-    
+
     if request.method == 'POST' and request.form.get('checkout_access') == 'allowed':
-        user = logged_user
-        user.check_out()
-        return render_template('checkout.html', user = logged_user)
-    
+        g.user.check_out()
+        return render_template('checkout.html', user=g.user)
+
     return redirect(url_for('cart'))
+
 
 
 @app.route('/remove_account')
 def remove_account():
-    if 'username' not in session:
+    if g.user is None:
         return redirect(url_for('login'))
-    return render_template('remove_account.html', user = logged_user)
+    return render_template('remove_account.html', user=g.user)
 
 
 @app.route('/confirm_remove_account', methods=['POST'])
 def confirm_remove_account():
-    
-    global logged_user
-    if 'username' not in session:
+    if g.user is None:
         return redirect(url_for('login'))
+
     confirm = request.form.get('confirm')
-    
     if confirm == 'yes':
-        account_manager.remove_account(logged_user.username, logged_user.password)
-     
-        
-        logged_user = None
+        account_manager.remove_account(g.user.username, g.user.password)
+        session.clear()
         return redirect('/')
     else:
-     
         return redirect('/remove_account')
 
 @app.route('/history', methods=['GET', 'POST'])
 def history():
-    if 'username' not in session:
+    if g.user is None:
         return redirect(url_for('login'))
-    user = logged_user
-    user.load_history_from_database()
-    logged_user.load_history_from_database()
-    history = user.view_shopping_history()
+
+    g.user.load_history_from_database()
+    history = g.user.view_shopping_history()
 
     if request.method == 'POST':
         if 'search_date' in request.form:
-            search_date = request.form['search_date']
-            history_by_date = user.get_shopping_history_by_date(search_date)
-            return render_template('history.html', history=history_by_date, search_performed=True, user=logged_user, check_feedback_exists=user.check_feedback_exists)
+            date = request.form['search_date']
+            filtered = g.user.get_shopping_history_by_date(date)
+            return render_template('history.html', history=filtered, search_performed=True, user=g.user, check_feedback_exists=g.user.check_feedback_exists)
 
-        elif 'order_id' in request.form and 'product_id' in request.form and 'rating' in request.form and 'comment' in request.form:
+        elif all(k in request.form for k in ['order_id', 'product_id', 'rating', 'comment']):
             order_id = request.form['order_id']
             product_id = request.form['product_id']
             rating = request.form['rating']
             comment = request.form['comment']
-            if not rating or not rating.isdigit() or not (1 <= int(rating) <= 5):
+            if not rating.isdigit() or not (1 <= int(rating) <= 5):
                 flash("Please select a rating between 1 and 5.", "danger")
                 return redirect(url_for('history'))
-            # Do something with rating and comment (e.g., save them to the database)
-            user.save_rating_and_comment(order_id, product_id, int(rating), comment)
-            history = user.view_shopping_history()  # refresh full history after rating/comment
 
-    return render_template('history.html', history=history, search_performed=False, user=logged_user, check_feedback_exists=user.check_feedback_exists)
+            g.user.save_rating_and_comment(order_id, product_id, int(rating), comment)
+            history = g.user.view_shopping_history()
+
+    return render_template('history.html', history=history, search_performed=False, user=g.user, check_feedback_exists=g.user.check_feedback_exists)
 
 def convertToBinaryData(filename):
     with open(filename, 'rb') as file:
@@ -1225,29 +1214,27 @@ def convertToBinaryData(filename):
     return blobData
 
 
-@app.route('/admin_dashboard', methods=['POST', 'GET'])
+@app.route('/admin_dashboard', methods=['GET', 'POST'])
 def admin_dashboard():
-    if 'username' not in session:
+    if g.user is None:
         return redirect(url_for('login'))
-    user = logged_user
-    if request.method == 'POST': 
+
+    if request.method == 'POST':
         name = request.form['name']
-        
         stock = int(request.form['stock'])
         price = float(request.form['price'])
-  
         description = request.form['description']
+        file = request.files['image_url']
 
         import os
-        file1 = request.files['image_url']
-        path = os.path.join('product_images', file1.filename)
-        file1.save(path)
-
-
+        path = os.path.join('product_images', file.filename)
+        file.save(path)
         image_blob = convertToBinaryData(path)
 
-        user.add_product(name, description, price, stock, image_blob) 
-    return render_template('admin_dashboard.html', user= logged_user)
+        g.user.add_product(name, description, price, stock, image_blob)
+
+    return render_template('admin_dashboard.html', user=g.user)
+
 
 @app.route('/admin_orders', methods = ['POST', 'GET'])
 def show_all_orders():
@@ -1266,37 +1253,32 @@ def show_all_orders():
 
 @app.route('/admin/remove', methods=['POST'])
 def remove_product():
-    if 'username' not in session:
+    if g.user is None:
         return redirect(url_for('login'))
-    user = logged_user
+
     name = request.form['name']
-    user.remove_product(name)
+    g.user.remove_product(name)
     return redirect(url_for('admin_dashboard'))
 
 @app.route('/admin/update', methods=['POST'])
 def update_product():
-    if 'username' not in session:
+    if g.user is None:
         return redirect(url_for('login'))
+
     name = request.form['name']
-    user = logged_user
-    stock = None
-    price = None
-    description = None
+    stock = int(request.form['stock']) if request.form['stock'] else None
+    price = float(request.form['price']) if request.form['price'] else None
+    description = request.form['description'] if request.form['description'] else None
+
     image_blob = None
-    if request.form['stock']:
-        stock = int(request.form['stock'])
-    if request.form['price']:
-        price = float(request.form['price'])
     if request.files['image_url']:
-        file1 = request.files['image_url']
+        file = request.files['image_url']
         import os
-        file1 = request.files['image_url']
-        path = os.path.join('product_images', file1.filename)
-        file1.save(path)
+        path = os.path.join('product_images', file.filename)
+        file.save(path)
         image_blob = convertToBinaryData(path)
-    if request.form['description']:
-        description = request.form['description']
-    user.update_product_to_database(name, description, price, stock, image_blob)
+
+    g.user.update_product_to_database(name, description, price, stock, image_blob)
     return redirect(url_for('admin_dashboard'))
 
 if __name__ == '__main__':
