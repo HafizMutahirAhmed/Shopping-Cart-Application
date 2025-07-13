@@ -1,0 +1,118 @@
+{% extends "admin_base.html" %}
+{% block content %}
+<style>
+    body {
+        background-color: #fef8f0;
+        color: #a01212;
+        font-family: 'Poppins', sans-serif;
+        margin: 0;
+        padding: 0;
+        background: url('https://tharfoundation.org/app/themes/tharfoundation/assets/images/bg-vision-mission.jpg');
+        background-repeat: repeat-y;
+        background-size: 100%;
+    }
+
+    .container {
+        max-width: 600px;
+        margin: auto;
+        padding-top: 40px;
+    }
+
+    h1 {
+        color: #a01212;
+        text-align: center;
+        margin-bottom: 30px;
+    }
+
+    form {
+        background-color: #f5e7d0;
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    label {
+        display: block;
+        margin-bottom: 10px;
+        color: #a01212;
+        font-weight: 500;
+    }
+
+    input[type="text"],
+    input[type="password"] {
+        width: 100%;
+        padding: 10px;
+        margin-bottom: 20px;
+        border: 1px solid #272727;
+        border-radius: 6px;
+        background-color: #fff;
+        color: black;
+    }
+
+    button {
+        width: 100%;
+        padding: 10px;
+        background-color: #a01212;
+        border: none;
+        border-radius: 6px;
+        color: #fff;
+        font-weight: bold;
+        cursor: pointer;
+        transition: background-color 0.3s;
+    }
+
+    button:hover {
+        background-color: #FFC300;
+        color: black;
+    }
+
+    p {
+        text-align: center;
+        margin-top: 20px;
+        color: #a01212;
+    }
+
+    .navbar {
+        background-color: #f5e7d0;
+        padding: 10px 0;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+
+    .navbar-brand,
+    .navbar-nav .nav-link {
+        font-weight: bold;
+        color: #a01212;
+    }
+
+    .navbar-nav .nav-link:hover {
+        color: #FFC300;
+    }
+</style>
+
+<!-- Navbar -->
+
+
+<!-- Admin Create Form -->
+<div class="container">
+    <h1>Create Admin Account</h1>
+    <form action="{{ url_for('create_admin') }}" method="post">
+        <label for="username">Username:</label>
+        <input type="text" id="username" name="username" required>
+
+        <label for="password">Password:</label>
+        <input type="password" id="password" name="password" required>
+
+        <label for="first_name">First Name:</label>
+        <input type="text" id="first_name" name="first_name" required>
+
+        <label for="last_name">Last Name:</label>
+        <input type="text" id="last_name" name="last_name" required>
+
+        <label for="address">Address:</label>
+        <input type="text" id="address" name="address" required>
+
+        <button type="submit">Create Admin</button>
+        <p>{{ message }}</p>
+    </form>
+</div>
+{% endblock %}

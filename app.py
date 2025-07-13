@@ -1044,13 +1044,13 @@ def signup():
         first_name = request.form['first_name']
         last_name = request.form['last_name']
         address = request.form['address']
-        user_type = request.form['user_type']
+        user_type = 'Customer'
 
         status = account_manager.create_account(user_type, username, password, first_name, last_name, address)
 
         if status == 'account created successfully':
-            account_manager.validate_login(username, password)
-            user = account_manager.logged_in_user
+            
+            user = account_manager.validate_login(username, password)
 
             
             if isinstance(user, Customer):
@@ -1304,6 +1304,34 @@ def update_product():
 
     g.user.update_product_to_database(name, description, price, stock, image_blob)
     return redirect(url_for('admin_dashboard'))
+
+
+@app.route('/create_admin', methods=['GET', 'POST'])
+def create_admin():
+    # Only allow access if logged in as Admin
+    if g.user is None or not isinstance(g.user, Admin):
+        return redirect(url_for('login'))
+
+    message = ''
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        first_name = request.form['first_name']
+        last_name = request.form['last_name']
+        address = request.form['address']
+        user_type = 'Admin'
+
+        # Reuse the same account creation logic
+        status = account_manager.create_account(user_type, username, password, first_name, last_name, address)
+
+        if status == 'account created successfully':
+            message = 'Admin account created successfully!'
+        elif status == 'user already exists':
+            message = 'Username already exists!'
+        elif status == 'invalid user type':
+            message = 'User type is invalid.'
+
+    return render_template('create_admin.html', message=message, user=g.user)
 
 if __name__ == '__main__':
     app.run(debug=True)
