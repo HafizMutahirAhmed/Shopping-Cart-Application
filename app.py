@@ -335,8 +335,13 @@ class DataHandler:
             INSERT INTO Orders (customer_id, order_date, order_time, total_amount, status)
             VALUES (%s, %s, %s, %s, %s)
         ''', (logged_user_id, order_date, order_time, order_cost, 'PENDING'))
-
-        order_id = self.cursor.lastrowid  # Get the newly created order's ID
+        self.cursor.execute('''
+            SELECT id FROM Orders
+            WHERE customer_id = %s
+            ORDER BY id DESC
+            LIMIT 1
+        ''', (logged_user_id,))
+        order_id = self.cursor.fetchone()[0] 
 
         # Insert each product into OrderDetails
         for product_name, product_quantity in product_name_and_quantity.items():
@@ -994,7 +999,7 @@ class Records(DataHandler):
 
 
 
-from flask import Flask, render_template, request, redirect, url_for, flash
+from flask import Flask, render_template, request, redirect, url_for, flash, session
 
 app = Flask(__name__)
 
