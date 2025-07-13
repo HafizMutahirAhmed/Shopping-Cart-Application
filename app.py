@@ -1246,9 +1246,15 @@ def admin_dashboard():
 
         import os
         path = os.path.join('product_images', file.filename)
-        file.save(path)
-        image_blob = convertToBinaryData(path)
 
+        # Ensure the directory exists
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+
+        # Save the uploaded file
+        file.save(path)
+
+        # Convert the saved image to binary and store it in the database
+        image_blob = convertToBinaryData(path)
         g.user.add_product(name, description, price, stock, image_blob)
 
     return render_template('admin_dashboard.html', user=g.user)
