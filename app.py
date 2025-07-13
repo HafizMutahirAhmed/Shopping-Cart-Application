@@ -951,42 +951,6 @@ class Records(DataHandler):
 
     
  
-     
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -1003,14 +967,14 @@ from flask import Flask, render_template, request, redirect, url_for, flash, ses
 
 app = Flask(__name__)
 
-app.secret_key = 'supersecretkey'
+app.secret_key = '78692mutahir'
 
 DataHandler().load_database()
 account_manager = AccountManager()
 logged_user = None
 @app.route('/')
 def index():
-    if logged_user is None:
+    if 'username' not in session:
         return render_template('login.html')
     return redirect(url_for('products'))    
 
@@ -1029,12 +993,17 @@ def login():
         logged_user = account_manager.logged_in_user  
        
         if isinstance(logged_user, Customer):
-            
+            session['username'] = logged_user.username
             logged_user.load_cart_from_database()
             logged_user.load_history_from_database()
-            return redirect(url_for('products'))
+            if 'username' in session:
+                return redirect(url_for('products'))
+            
         elif isinstance(logged_user, Admin):
-            return redirect(url_for('admin_dashboard'))
+            session['username'] = logged_user.username
+            if 'username' in session:
+                return redirect(url_for('admin_dashboard'))
+            
         message = 'invalid credentials!'
         return render_template('login.html', message = message)
     
@@ -1055,14 +1024,20 @@ def signup():
         account_creation_status = account_manager.create_account(user_type, username, password, first_name, last_name, address)
         if account_creation_status == 'account created successfully':
             account_manager.validate_login(username, password)
-            global logged_user  
+            # global logged_user  
             logged_user = account_manager.logged_in_user
+
             if isinstance(logged_user, Customer):
+                session['username'] = logged_user.username
                 logged_user.load_cart_from_database()
                 logged_user.load_history_from_database()
-                return redirect(url_for('products'))
+                if 'username' in session:
+                    return redirect(url_for('products'))
+                
             elif isinstance(logged_user, Admin):
-                return redirect(url_for('admin_dashboard'))
+                session['username'] = logged_user.username
+                if 'username' in session:
+                    return redirect(url_for('admin_dashboard'))
             
             
         elif account_creation_status == 'invalid user type':
@@ -1077,7 +1052,7 @@ def signup():
 
 @app.route('/products',methods=['GET', 'POST'])
 def products():
-    if logged_user is None:
+    if 'username' not in session:
         return redirect(url_for('login'))
     if request.method == 'GET':
         products = logged_user.view_products()
@@ -1092,8 +1067,9 @@ def products():
 
 @app.route('/product/<product_name>', methods=['GET', 'POST'])
 def product(product_name):
-    if logged_user is None:
+    if 'username' not in session:
         return redirect(url_for('login'))
+    
     reviews = DataHandler().get_feedback_data(product_name)
     # Fetch the product by ID
     product = logged_user.get_product_by_name(product_name)
@@ -1112,6 +1088,7 @@ def product(product_name):
 def logout():
     global logged_user
     logged_user = None
+    session.pop('username', None)
     DataHandler().load_database()
     global account_manager
     account_manager = AccountManager()
@@ -1121,7 +1098,7 @@ def logout():
 
 @app.route('/add_to_cart/<product_name>', methods=['GET', 'POST'])
 def add_to_cart(product_name):
-    if logged_user is None:
+    if 'username' not in session:
         return redirect(url_for('login'))
     if request.method == 'POST': 
         user = logged_user
@@ -1136,7 +1113,7 @@ def add_to_cart(product_name):
 
 @app.route('/cart', methods=['GET', 'POST'])
 def cart(): 
-    if logged_user is None:
+    if 'username' not in session:
         return redirect(url_for('login'))
     user = logged_user 
     
@@ -1155,7 +1132,7 @@ def cart():
 
 @app.route('/delete_product', methods=['POST'])
 def delete_product():
-    if logged_user is None:
+    if 'username' not in session:
         return redirect(url_for('login'))
     user = logged_user
     product_name = request.form['deleted_product_name']
@@ -1166,7 +1143,7 @@ def delete_product():
 
 @app.route('/update_cart', methods=['POST'])
 def update_cart():
-    if logged_user is None:
+    if 'username' not in session:
         return redirect(url_for('login'))
     user = logged_user
     product_name = request.form['updated_product_name']
@@ -1177,7 +1154,7 @@ def update_cart():
 
 @app.route('/checkout', methods=['GET', 'POST'])
 def checkout():
-    if logged_user is None:
+    if 'username' not in session:
         return redirect(url_for('login'))
     
     if request.method == 'POST' and request.form.get('checkout_access') == 'allowed':
@@ -1190,7 +1167,7 @@ def checkout():
 
 @app.route('/remove_account')
 def remove_account():
-    if logged_user is None:
+    if 'username' not in session:
         return redirect(url_for('login'))
     return render_template('remove_account.html', user = logged_user)
 
@@ -1199,7 +1176,7 @@ def remove_account():
 def confirm_remove_account():
     
     global logged_user
-    if logged_user is None:
+    if 'username' not in session:
         return redirect(url_for('login'))
     confirm = request.form.get('confirm')
     
@@ -1215,7 +1192,7 @@ def confirm_remove_account():
 
 @app.route('/history', methods=['GET', 'POST'])
 def history():
-    if logged_user is None:
+    if 'username' not in session:
         return redirect(url_for('login'))
     user = logged_user
     user.load_history_from_database()
@@ -1250,7 +1227,7 @@ def convertToBinaryData(filename):
 
 @app.route('/admin_dashboard', methods=['POST', 'GET'])
 def admin_dashboard():
-    if logged_user is None:
+    if 'username' not in session:
         return redirect(url_for('login'))
     user = logged_user
     if request.method == 'POST': 
@@ -1274,7 +1251,7 @@ def admin_dashboard():
 
 @app.route('/admin_orders', methods = ['POST', 'GET'])
 def show_all_orders():
-    if logged_user is None:
+    if 'username' not in session:
         return redirect(url_for('login'))
     user = logged_user
     if request.method == 'POST':  
@@ -1289,7 +1266,7 @@ def show_all_orders():
 
 @app.route('/admin/remove', methods=['POST'])
 def remove_product():
-    if logged_user is None:
+    if 'username' not in session:
         return redirect(url_for('login'))
     user = logged_user
     name = request.form['name']
@@ -1298,7 +1275,7 @@ def remove_product():
 
 @app.route('/admin/update', methods=['POST'])
 def update_product():
-    if logged_user is None:
+    if 'username' not in session:
         return redirect(url_for('login'))
     name = request.form['name']
     user = logged_user
