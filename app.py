@@ -80,7 +80,7 @@ def send_verification_email(to_email, token):
 
 
     msg = MIMEText(message, "html")
-    msg['Subject'] = "Verify Your Email - Shopping Cart App"
+    msg['Subject'] = "Verify Your Email - Virsa Forever"
     msg['From'] = "mutahirahmed001@gmail.com"
     msg['To'] = to_email
 
