@@ -100,6 +100,30 @@ def send_verification_email(to_email, token):
     except Exception as e:
         return f"An unexpected error occurred: {str(e)}"
 
+def send_reset_email(to_email, token):
+    link = f"{os.environ.get('BASE_URL', 'http://localhost:5000')}/reset_password/{token}"
+    
+    message = f"""
+    <html><body style="font-family: Poppins; background:#fef8f0; padding:20px;">
+        <h2 style="color:#a01212;">Reset Your Password</h2>
+        <p>Click the button below to reset your password:</p>
+        <a href="{link}" style="padding:10px 20px; background:#a01212; color:white; text-decoration:none; border-radius:6px;">Reset Password</a>
+        <p>If you didn't request this, just ignore it.</p>
+    </body></html>
+    """
+    
+    msg = MIMEText(message, "html")
+    msg['Subject'] = "Reset Password - Shopping Cart"
+    msg['From'] = "mutahirahmed001@gmail.com"
+    msg['To'] = to_email
+
+    try:
+        server = smtplib.SMTP_SSL('smtp.gmail.com', 465)
+        server.login("mutahirahmed001@gmail.com", "jzeujuilqzhwbgyk")
+        server.sendmail(msg['From'], [msg['To']], msg.as_string())
+        server.quit()
+    except Exception as e:
+        print("Email error:", e)
 
 class DataHandler:
     import sqlite3 as sql
@@ -1490,6 +1514,42 @@ def create_admin():
             message = 'User type is invalid.'
 
     return render_template('create_admin.html', message=message, user=g.user)
+
+@app.route('/forgot_password', methods=['GET', 'POST'])
+def forgot_password():
+    if request.method == 'POST':
+        email = request.form['email']
+        user = account_manager.get_user_by_username(email)
+        
+        if user:
+            token = generate_token({'username': user.username})
+            send_reset_email(user.username, token)
+            return styled_message_html("✅ Reset link sent to your Gmail.")
+        else:
+            return styled_message_html("❌ This email is not registered.")
+    
+    return render_template("forgot_password.html")
+
+
+
+@app.route('/reset_password/<token>', methods=['GET', 'POST'])
+def reset_password(token):
+    data = confirm_token(token)
+    if not data:
+        return styled_message_html("❌ Invalid or expired link.")
+    
+    username = data['username']
+    if request.method == 'POST':
+        new_password = request.form['password']
+        user = account_manager.get_user_by_username(username)
+        if user:
+            user.password = new_password
+            account_manager.save_user(user)
+            return styled_message_html("✅ Password reset successfully.", show_login_button=True)
+        else:
+            return styled_message_html("❌ User not found.")
+
+    return render_template("reset_password.html", username=username)
 
 if __name__ == '__main__':
     app.run(debug=True)
